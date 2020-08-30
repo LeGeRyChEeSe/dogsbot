@@ -1,5 +1,6 @@
 import discord
 import random
+import env
 
 
 class Bot(discord.Client):
@@ -93,4 +94,4 @@ class Bot(discord.Client):
 if __name__ == '__main__':
 
     bot = Bot()
-    bot.run("NzQ4Njg5MDc1ODU4NDQwMzQz.X0hFCQ.Kg5zMAtJWpqzwVBZb4Bmg1pkg9Q")
+    bot.run(env.TOKEN)
