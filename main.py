@@ -1,6 +1,8 @@
 import discord
 import random
 import env
+import events.client.on_ready
+import events.client.on_message
 
 
 class Bot(discord.Client):
@@ -8,9 +10,9 @@ class Bot(discord.Client):
         super().__init__()
 
     async def on_ready(self):
-        print("Loggé en tant que")
-        print(self.user.name)
-        print(self.user.id)
+        print(self.user.name + " loggé !")
+        print("Id : " + str(self.user.id))
+        print("En attente...")
 
     def random_colour(self):
         hexa = "0123456789abcdef"
@@ -77,14 +79,14 @@ class Bot(discord.Client):
             return await channel.send(embed=embed)
 
         if (content.startswith(prefix + "invite")):
-            invite = await channel.create_invite(max_age=3600, max_uses=1, unique=False)
+            invite = await channel.create_invite(max_age=3600, unique=False)
 
             if (message.mentions == None):
                 return await channel.send(invite.url)
             else:
                 for mention in message.mentions:
                     await mention.send(
-                        "Vous avez reçu une invitation dans le serveur " + str(server) + " envoyée par " + invite.inviter.mention + " !\nElle est valable pour " + str(invite.max_uses) + " utilisation(s) et pour " + str(invite.max_age/3600) + "h !\n" + invite.url)
+                        "Vous avez reçu une invitation dans le serveur " + str(server) + " envoyée par " + invite.inviter.mention + " !\nElle est valable pour " + str(invite.max_age/3600) + "h !\n" + invite.url)
                 return await channel.send("Le lien d'invitation au serveur " + server.name + " a été envoyé à toutes les personnes mentionnées.")
 
         if (content.startswith(prefix)):
