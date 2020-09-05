@@ -8,7 +8,7 @@ class Games(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases=['8ball', 'eightball'])
+    @commands.command(aliases=['8ball', 'eightball', 'game'])
     async def _8ball(self, ctx, *, question):
         responses = ["Bien sûr!",
                      "Mais oui, t'a cru toi...",
