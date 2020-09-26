@@ -1,7 +1,11 @@
 import discord
 from discord.ext import commands
 import json
-import datetime
+from datetime import datetime, timezone
+import cse
+import env
+import asyncio
+import sqlite3
 
 jonction = None
 
@@ -14,13 +18,64 @@ class Admin(commands.Cog):
     # Events
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction, user):
-        if (user.bot):
-            return
-        for key, value in jonction.items():
-            print(value)
-            if (key == reaction):
-                await user.add_roles(value)
+    async def on_raw_reaction_add(self, payload):
+        user_id = payload.user_id
+        message_id = payload.message_id
+        guild_id = payload.guild_id
+        channel_id = payload.channel_id
+        emoji = payload.emoji.name
+
+        guild = discord.utils.find(
+            lambda g: g.id == guild_id, self.client.guilds)
+        channel = discord.utils.find(
+            lambda g: g.id == channel_id, guild.channels)
+        message = await channel.fetch_message(message_id)
+
+        if (message.author.bot and message.pinned):
+            reactions = message.reactions
+            roles = message.role_mentions
+
+            for embed in message.embeds:
+                for field in embed.fields:
+                    message_reaction = field.name
+                    message_role_id = int(field.value.replace(
+                        "<@&", "").replace(">", ""))
+                    if (emoji == message_reaction):
+                        role = discord.utils.get(
+                            guild.roles, id=message_role_id)
+                        member = guild.get_member(user_id)
+                        await member.add_roles(role)
+                        return print(f"{member.mention} s'est attribué le rôle {role.name}!")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        user_id = payload.user_id
+        message_id = payload.message_id
+        guild_id = payload.guild_id
+        channel_id = payload.channel_id
+        emoji = payload.emoji.name
+
+        guild = discord.utils.find(
+            lambda g: g.id == guild_id, self.client.guilds)
+        channel = discord.utils.find(
+            lambda g: g.id == channel_id, guild.channels)
+        message = await channel.fetch_message(message_id)
+
+        if (message.author.bot and message.pinned):
+            reactions = message.reactions
+            roles = message.role_mentions
+
+            for embed in message.embeds:
+                for field in embed.fields:
+                    message_reaction = field.name
+                    message_role_id = int(field.value.replace(
+                        "<@&", "").replace(">", ""))
+                    if (emoji == message_reaction):
+                        role = discord.utils.get(
+                            guild.roles, id=message_role_id)
+                        member = guild.get_member(user_id)
+                        await member.remove_roles(role)
+                        return print(f"{member.mention} s'est destitué du rôle {role.name}!")
 
     # Commands
 
@@ -86,6 +141,7 @@ class Admin(commands.Cog):
     @commands.command(brief="Ajouter des rôles avec des réactions", usage="<reaction1>;<role1>,<reactionN>;<roleN>", description="Renvoie un embed contenant l'attribution de chaque réaction à un rôle spécifique. Ne peut pas contenir une même réaction pour 2 rôles à la fois.")
     @commands.check(team_dev)
     async def addroles(self, ctx, *, content):
+        await ctx.message.delete()
         reactions = list()
         roles = ctx.message.role_mentions
         lines = 0
@@ -112,14 +168,57 @@ class Admin(commands.Cog):
         embed.colour = discord.Colour(126)
         embed.set_author(name=ctx.message.guild.name)
         embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.timestamp = datetime.now(timezone.utc)
 
         message = await ctx.send(embed=embed)
+        await message.pin(reason="Roles Attribution")
+        await ctx.channel.purge(limit=1)
 
         for emoji in reactions:
             await message.add_reaction(emoji)
 
         print(jonction)
 
+    @commands.command()
+    async def search(self, query):
+        search = cse.Search(env.API_KEY)
+        results = await search.search(query)
+        print(results[0].title)
+
+    @commands.command(hidden=True)
+    @commands.check(team_dev)
+    async def bdd(self, ctx, *table):
+        connection = sqlite3.connect("./assets/Data/pairs.db")
+        cursor = connection.cursor()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pairs(
+            id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+            questions TEXT,
+            responses TEXT
+        );
+        """)
+        connection.commit()
+
+        pairs = [
+                ["test", ["Réussi!"]],
+                ["(bonjour|salut|hey|slt|coucou|wesh|bonsoir|bon matin|hello|hi|cc|hola)",
+                 ["Coucou toi ", f"Hey!", "Yo, la forme ? ", "Salut ça va ? ", "\**Bâille* \* Coucou... :yawning_face: "]]
+        ]
+
+        for questions, responses in pairs:
+            str_response = ""
+            for response in responses:
+                str_response += f"{response}"
+            cursor.execute("""
+            INSERT INTO pairs(questions, responses) VALUES(?, ?)
+            """, (questions, str_response))
+        connection.commit()
+
+        cursor.execute("""
+         SELECT responses FROM pairs WHERE questions LIKE "%cc%"
+         """)
+        question1 = cursor.fetchall()
+        await ctx.send(question1)
     # Commands Error
 
     @bot.error

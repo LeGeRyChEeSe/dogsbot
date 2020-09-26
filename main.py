@@ -13,7 +13,7 @@ def get_prefixes(client, message):
     return prefixes[str(message.guild.id)]
 
 
-file = "assets\\prefixes.json"
+file = "assets/prefixes.json"
 client = commands.Bot(command_prefix=get_prefixes)
 status = cycle(['Status 1', 'Status 2'])
 
@@ -32,7 +32,7 @@ async def on_ready():
 async def on_member_join(member):
     print(f'{member} a rejoint le serveur.')
 
-    role = member.guild.get_role(role_id=748858810105462884)
+    role = member.guild.get_role(role_id=752333127971766414)
 
     await member.add_roles(role)
 
@@ -102,13 +102,12 @@ async def unload(ctx, extension):
         return await ctx.send(err)
 
 
-@client.command()
+@client.command(aliases=["rl"])
 async def reload(ctx, extension):
     await unload(ctx, extension)
     await load(ctx, extension)
 
 # Tasks
-
 """
 @tasks.loop(seconds=10,)
 async def change_status():
