@@ -20,6 +20,8 @@ class Admin(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         user_id = payload.user_id
+        if user_id == self.client.user.id:
+            return
         message_id = payload.message_id
         guild_id = payload.guild_id
         channel_id = payload.channel_id
@@ -45,7 +47,7 @@ class Admin(commands.Cog):
                             guild.roles, id=message_role_id)
                         member = guild.get_member(user_id)
                         await member.add_roles(role)
-                        return print(f"{member.mention} s'est attribué le rôle {role.name}!")
+                        return print(f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name}!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -75,34 +77,34 @@ class Admin(commands.Cog):
                             guild.roles, id=message_role_id)
                         member = guild.get_member(user_id)
                         await member.remove_roles(role)
-                        return print(f"{member.mention} s'est destitué du rôle {role.name}!")
+                        return print(f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name}!")
 
     # Commands
 
-    @commands.command(brief="Bot latency", description="Réponds par 'Pong!' en indiquant la latence du bot.")
+    @commands.command(name="ping", brief="Bot latency", description="Réponds par 'Pong!' en indiquant la latence du bot.")
     @commands.has_permissions(manage_messages=True)
     async def ping(self, ctx):
         await ctx.send(f"Pong! (Latence du bot: {round(self.client.latency * 1000)}ms)")
 
-    @commands.command(brief="Effacer des messages", description="Permet de supprimer un nombre défini de messages dans un salon.", usage="<nombre de messages>", aliases=["purge", "erase", "delete"])
+    @commands.command(name="clear", brief="Effacer des messages", description="Permet de supprimer un nombre défini de messages dans un salon.", usage="<nombre_de_messages>", aliases=["purge", "erase", "delete"])
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx, amount=5):
         await ctx.channel.purge(limit=amount + 1)
         print(f"{amount} messages ont été effacé du salon {ctx.channel.name}")
 
-    @commands.command()
+    @commands.command(name="kick", brief="Expulser un membre du serveur")
     @commands.has_permissions(manage_messages=True)
     async def kick(self, ctx, member: discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.send(f"{member.mention} a été expulsé!")
 
-    @commands.command()
+    @commands.command(name="ban", brief="Bannir un membre du serveur")
     @commands.has_permissions(manage_messages=True)
     async def ban(self, ctx, member: discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.send(f"{member.mention} a été banni!")
 
-    @commands.command()
+    @commands.command(name="unban", brief="Débannir un membre du serveur")
     @commands.has_permissions(manage_messages=True)
     async def unban(self, ctx, *, member):
         banned_users = await ctx.guild.bans()
@@ -124,7 +126,7 @@ class Admin(commands.Cog):
     async def bot(self, ctx):
         await ctx.send(self.client.user.id)
 
-    @commands.command(name="changeprefix")
+    @commands.command(name="changeprefix", brief="Modifier le prefix de commande", description="Modifier le prefix de commande. Par défaut le prefix est !\n\n", usage="<new_prefix>")
     @commands.check(team_dev)
     async def changeprefix(self, ctx, prefix):
         file = ".\\assets\\prefixes.json"
@@ -179,7 +181,7 @@ class Admin(commands.Cog):
 
         print(jonction)
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def search(self, query):
         search = cse.Search(env.API_KEY)
         results = await search.search(query)

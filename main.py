@@ -23,23 +23,18 @@ status = cycle(['Status 1', 'Status 2'])
 
 @client.event
 async def on_ready():
-    await client.change_presence(status=discord.Status.idle, activity=discord.Game("Wouaf | !help"))
-    # change_status.start()
+    await client.change_presence(status=discord.Status.online, activity=discord.Game("Wouaf | !help"))
     print("Le bot est prêt.")
 
 
 @client.event
 async def on_member_join(member):
-    print(f'{member} a rejoint le serveur.')
-
-    role = member.guild.get_role(role_id=752333127971766414)
-
-    await member.add_roles(role)
+    print(f"{member} a rejoint le serveur {member.guild.name}!")
 
 
 @client.event
 async def on_member_remove(member):
-    print(f'{member} a quitté le serveur.')
+    print(f'{member} a quitté le serveur {member.guild.name}!')
 
 
 @client.event
@@ -80,7 +75,7 @@ async def on_command_error(ctx, error):
 # Commands
 
 
-@client.command()
+@client.command(aliases=["ld"])
 async def load(ctx, extension):
 
     try:
@@ -91,7 +86,7 @@ async def load(ctx, extension):
         return await ctx.send(err)
 
 
-@client.command()
+@client.command(aliases=["ul"])
 async def unload(ctx, extension):
 
     try:
