@@ -1,40 +1,10 @@
-import discord
+from asyncio import queues
 from discord.ext import commands
+from discord.utils import get
 import youtube_dl
+import shutil
+import os
 import asyncio
-
-musics = {}
-ytdl = youtube_dl.YoutubeDL()
-
-
-class Song:
-    def __init__(self, link):
-        song = ytdl.extract_info(link, download=False)
-        song_format = song["formats"][0]
-        self.url = song["webpage_url"]
-        self.stream_url = song_format["url"]
-        self.title = song["title"]
-        self.duration = song["duration"]
-
-
-def play_song(self, ctx, client, song, queue):
-    source = discord.PCMVolumeTransformer(
-        discord.FFmpegPCMAudio(song.stream_url, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
-
-    def next(_):
-        if len(queue) > 0:
-            new_song = queue[0]
-            del queue[0]
-            play_song(self, ctx, client, new_song, queue)
-            embed = discord.Embed(
-                title=f"{new_song.title} ({new_song.duration}s)", url=new_song.url, description="Cette musique va être lancée.")
-            asyncio.run_coroutine_threadsafe(
-                ctx.send(embed=embed), self.loop)
-
-        else:
-            asyncio.run_coroutine_threadsafe(
-                client.disconnect(), self.loop)
-    client.play(source, after=next)
 
 
 class Music(commands.Cog):
@@ -45,30 +15,53 @@ class Music(commands.Cog):
     # Commands
     @ commands.command()
     async def join(self, ctx):
+        client = self.client
+        global voice
         channel = ctx.author.voice.channel
-        await channel.connect()
+        voice = get(client.voice_clients, guild=ctx.guild)
+
+        if voice and voice.is_connected():
+            await voice.move_to(channel)
+        else:
+            voice = await channel.connect()
+        await ctx.send(f"J'ai rejoins le canal {channel}!")
 
     @ commands.command()
     async def leave(self, ctx):
+        client = self.client
         channel = ctx.author.voice.channel
-        await ctx.voice_client.disconnect()
+        voice = get(client.voice_clients, guild=ctx.guild)
 
-    @ commands.command()
-    async def p(self, ctx, url):
-        client = ctx.guild.voice_client
-        if client and client.channel:
-            song = Song(url)
-            musics[ctx.guild].append(song)
-        else:
-            channel = ctx.author.voice.channel
-            song = Song(url)
-            musics[ctx.guild] = []
-            client = await channel.connect()
-            embed = discord.Embed(
-                title=f"{song.title} ({song.duration}s)", url=song.url, description="Cette musique va être lancée.")
-            await ctx.send(embed=embed)
-            play_song(self.client, ctx, client, song, musics[ctx.guild])
-        await ctx.message.delete()
+        if voice and voice.is_connected():
+            await voice.disconnect()
+            await ctx.send(f"J'ai quitté le canal {channel}!")
+
+    @ commands.command(aliases=["p", "pl", "pla"])
+    async def play(self, ctx, url: str):
+        client = self.client
+
+        def check_queue():
+            Queue_infile = os.path.isdir("./Queue")
+            if Queue_infile is True:
+                DIR = os.path.abspath(os.path.realpath("Queue"))
+                length = len(os.listdir(DIR))
+                still_q = length - 1
+                try:
+                    first_file = os.listdir(DIR)[0]
+                except:
+                    asyncio.run_coroutine_threadsafe(
+                        ctx.send("La queue est vide!"), client.loop)
+                    queues.clear()
+                    return
+                main_location = os.path.dirname(os.path.realpath(__file__))
+                song_path = os.path.abspath(
+                    os.path.realpath("Queue") + "\\" + first_file)
+                if length != 0:
+                    asyncio.run_coroutine_threadsafe(
+                        ctx.send("La musique est finie, la prochaine va être jouée!"), client.loop)
+                    asyncio.run_coroutine_threadsafe(
+                        ctx.send(f"Liste des musiques restantes: {still_q}"), client.loop)
+                    song_there = os.path.isfile("")
 
 
 def setup(client):

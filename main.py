@@ -4,6 +4,8 @@ import env
 import os
 from itertools import cycle
 import json
+import sqlite3
+import traceback
 
 
 def get_prefixes(client, message):
@@ -16,6 +18,7 @@ def get_prefixes(client, message):
 file = "assets/prefixes.json"
 client = commands.Bot(command_prefix=get_prefixes)
 status = cycle(['Status 1', 'Status 2'])
+db_path = "./assets/Data/pairs.db"
 
 
 # Events
@@ -24,6 +27,13 @@ status = cycle(['Status 1', 'Status 2'])
 @client.event
 async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=discord.Game("Wouaf | !help"))
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DROP TABLE chat_table")
+    except sqlite3.OperationalError:
+        pass
+    connection.close()
     print("Le bot est prêt.")
 
 
@@ -70,7 +80,12 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(f"Vous n'avez pas les permissions nécessaires pour éxecuter la commande `{ctx.message.content}`")
     else:
-        print(error)
+        etype = type(error)
+        trace = error.__traceback__
+        verbosity = 4
+        lines = traceback.format_exception(etype, error, trace, verbosity)
+        traceback_text = ''.join(lines)
+        print(traceback_text)
 
 # Commands
 

@@ -6,14 +6,60 @@ import cse
 import env
 import asyncio
 import sqlite3
+from traceback import format_exception
 
 jonction = None
+db_path = "./assets/Data/pairs.db"
 
 
 class Admin(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+
+    def not_command(self, message):
+        return message.content.startswith(str(self.client.command_prefix))
+
+    def check_author(self, *args):
+        def inner(message):
+            ctx = args[0]
+            print(ctx.author.name)
+            return str(message.author.id) == str(ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+        return inner
+
+    def check_remove_or_update(self, *args):
+        def inner(message):
+            if not self.check_author(message):
+                return False
+            if message.content == "exit":
+                return True
+            for i in args:
+                if message.content == i:
+                    return True
+            return False
+        return inner
+
+    def check_if_int(self, id):
+        try:
+            int(id.content)
+        except ValueError:
+            if id.content == "exit":
+                return True
+            else:
+                return False
+        else:
+            if self.check_author(id):
+                return True
+            else:
+                return False
+
+    def db_connect(self, db=db_path):
+        global connection, cursor
+        connection = sqlite3.connect(db)
+        cursor = connection.cursor()
+
+    def db_close(self):
+        connection.close()
 
     # Events
 
@@ -182,46 +228,193 @@ class Admin(commands.Cog):
         print(jonction)
 
     @commands.command(hidden=True)
+    @commands.check(team_dev)
     async def search(self, query):
         search = cse.Search(env.API_KEY)
         results = await search.search(query)
         print(results[0].title)
 
-    @commands.command(hidden=True)
+    @commands.command(aliases=["pairs", "prs", "sp"])
     @commands.check(team_dev)
-    async def bdd(self, ctx, *table):
-        connection = sqlite3.connect("./assets/Data/pairs.db")
+    async def see_pairs(self, ctx):
+        connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
         cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pairs(
-            id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-            questions TEXT,
-            responses TEXT
-        );
+         SELECT * FROM pairs
+         """)
+        await ctx.send(cursor.fetchall())
+
+    @commands.command(hidden=True, aliases=["rmp", "rmpairs", "upp", "upairs"])
+    @commands.check(team_dev)
+    async def update_pairs(self, ctx):
+
+        def update_questions_pairs(id: int, questions: str):
+            cursor.execute(
+                "UPDATE pairs SET questions = ? WHERE id = ?", (questions, id))
+            cursor.close()
+            connection.commit()
+
+        def update_responses_pairs(id: int, responses: str):
+            cursor.execute(
+                "UPDATE pairs SET responses = ? WHERE id = ?", (responses, id))
+            cursor.close()
+            connection.commit()
+
+        def select_from_pairs(*id: int):
+            if not id:
+                return cursor.execute("SELECT id, questions, responses FROM pairs").fetchall()
+            else:
+                return cursor.execute("SELECT id, questions, responses FROM pairs WHERE id = ?", (id[0]),).fetchall()
+
+        def delete_from_pairs(id: int):
+            cursor.execute("DELETE FROM pairs WHERE id = ?", (id,))
+            cursor.close()
+            connection.commit()
+
+        self.db_connect()
+        questions = select_from_pairs()
+        list_pairs = ""
+
+        for question in questions:
+            list_pairs += "`" + str(question[0]) + \
+                "`" + ": \"" + question[1] + "\" -> " + \
+                str(question[2].split("|")) + "\"\n"
+
+        await ctx.send(f"**Voici la liste des questions associées à leurs réponses actuellement dans le chatbot:**\n{list_pairs}\nVeuillez sélectionner un `numéro` pour la modifier ou la supprimer.")
+        try:
+            id = await self.client.wait_for("message", check=check_if_int, timeout=120.0)
+        except asyncio.TimeoutError:
+            self.db_close()
+            await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+        else:
+            if id.content == "exit":
+                self.db_close()
+                return await ctx.send("Commande annulée.")
+            await ctx.send("Voulez-vous modifier ou supprimer la ligne ? (`m` ou `s`)")
+
+            try:
+                ask_modify_db = await self.client.wait_for("message", check=check_remove_or_update("m", "s"), timeout=120.0)
+            except asyncio.TimeoutError:
+                self.db_close()
+                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+            else:
+                if ask_modify_db.content == "exit":
+                    self.db_close()
+                    return await ctx.send("Commande annulée.")
+                elif ask_modify_db.content == "m":
+                    select_line = select_from_pairs(id.content)
+                    response = f"`{select_line[0][0]}`: \"{select_line[0][1]}\" -> \"{select_line[0][2].split('|')}\""
+                    await ctx.send(f"Voici la ligne que vous avez sélectionné:\n{response}\n\nVoulez-vous modifier les `q`uestions, les `r`éponses ou `t`out à la fois ? (`q`, `r`, `t`)")
+
+                    try:
+                        update_choice = await self.client.wait_for("message", check=check_remove_or_update("q", "r", "t"), timeout=120.0)
+                    except asyncio.TimeoutError:
+                        self.db_close()
+                        await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                    else:
+                        if update_choice.content == "exit":
+                            self.db_close()
+                            return await ctx.send("Commande annulée.")
+                        elif update_choice.content == "q":
+                            await ctx.send("Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
+                            try:
+                                update_question = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                            except asyncio.TimeoutError:
+                                self.db_close()
+                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                            else:
+                                if update_question.content == "exit":
+                                    self.db_close()
+                                    return await ctx.send("Commande annulée.")
+                                update_questions_pairs(
+                                    id.content, update_question.content)
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                self.db_close()
+                                return
+                        elif update_choice.content == "r":
+                            await ctx.send("Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
+                            try:
+                                update_responses = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                            except asyncio.TimeoutError:
+                                self.db_close()
+                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                            else:
+                                if update_responses.content == "exit":
+                                    self.db_close()
+                                    return await ctx.send("Commande annulée.")
+                                update_responses_pairs(
+                                    id.content, update_responses.content)
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                self.db_close()
+                                return
+                        elif update_choice.content == "t":
+                            await ctx.send("Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
+                            try:
+                                update_question = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                            except asyncio.TimeoutError:
+                                self.db_close()
+                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                            else:
+                                if update_question.content == "exit":
+                                    self.db_close()
+                                    return await ctx.send("Commande annulée.")
+                                update_questions_pairs(
+                                    id.content, update_question.content)
+                            await ctx.send("Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
+                            try:
+                                update_responses = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                            except asyncio.TimeoutError:
+                                self.db_close()
+                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                            else:
+                                if update_responses.content == "exit":
+                                    self.db_close()
+                                    return await ctx.send("Commande annulée.")
+                                update_responses_pairs(
+                                    id.content, update_responses.content)
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                self.db_close()
+                                return
+                elif ask_modify_db.content == "s":
+                    delete_from_pairs(id.content)
+                    self.db_close()
+                    return await ctx.send(f"La ligne `{id.content}` a bien été supprimée de la table!")
+
+    @commands.command()
+    async def owner(self, ctx):
+        owner = ctx.guild.owner_id
+        await ctx.send(f"Le propriétaire de {ctx.guild.name} est <@{owner}>!")
+    # Commands Error
+
+    @commands.command(aliases=["dpt", "dt"])
+    @commands.check(team_dev)
+    async def drop_table(self, ctx, table):
+        self.db_connect()
+        cursor.execute(f"""
+        DROP TABLE {table}
         """)
         connection.commit()
+        print(f"{table} a été supprimé!")
+        await ctx.send(f"{table} a été supprimé!")
 
-        pairs = [
-                ["test", ["Réussi!"]],
-                ["(bonjour|salut|hey|slt|coucou|wesh|bonsoir|bon matin|hello|hi|cc|hola)",
-                 ["Coucou toi ", f"Hey!", "Yo, la forme ? ", "Salut ça va ? ", "\**Bâille* \* Coucou... :yawning_face: "]]
-        ]
-
-        for questions, responses in pairs:
-            str_response = ""
-            for response in responses:
-                str_response += f"{response}"
-            cursor.execute("""
-            INSERT INTO pairs(questions, responses) VALUES(?, ?)
-            """, (questions, str_response))
+    @commands.command(aliases=["dll", "dl"])
+    @commands.check(team_dev)
+    async def delete_line(self, ctx, name, value, table):
+        self.db_connect()
+        cursor.execute(f"""
+        DELETE FROM {table} WHERE {name}={value}
+        """)
         connection.commit()
+        print(f"{table}: {name} -> {value} a été supprimé!")
+        await ctx.send(f"`{table}: {name} -> {value}` a été supprimé!")
 
-        cursor.execute("""
-         SELECT responses FROM pairs WHERE questions LIKE "%cc%"
-         """)
-        question1 = cursor.fetchall()
-        await ctx.send(question1)
-    # Commands Error
+    @commands.command(aliases=["select", "sl"])
+    async def select_from_table(self, ctx, select, _from):
+        self.db_connect()
+        selection = cursor.execute(f"""
+        SELECT {select} FROM {_from}
+        """).fetchall()
+        return await ctx.send(str(selection))
 
     @bot.error
     async def bot_error(self, ctx, error):
@@ -233,6 +426,15 @@ class Admin(commands.Cog):
         if ValueError(error):
             print(error)
             await ctx.send("L'utilisateur doit être écrit de la forme `nom#XXXX`.")
+
+    @update_pairs.error
+    async def update_pairs_error(self, ctx, error):
+        etype = type(error)
+        trace = error.__traceback__
+        verbosity = 4
+        lines = format_exception(etype, error, trace, verbosity)
+        traceback_text = ''.join(lines)
+        print(traceback_text)
 
 
 def setup(client):
