@@ -9,4 +9,3 @@ PyNaCl
 rsa
 wheel
 youtube-dl
-python3
