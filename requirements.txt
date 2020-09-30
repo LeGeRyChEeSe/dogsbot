@@ -6,7 +6,6 @@ discord.py
 ffmpeg
 pip
 PyNaCl
-cse
 rsa
 wheel
 youtube-dl
