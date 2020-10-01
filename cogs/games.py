@@ -76,7 +76,7 @@ class Games(commands.Cog):
     def db_close(self):
         connection.close()
 
-    def create_chat_table():
+    def create_chat_table(self):
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_table(
             id INTEGER PRIMARY KEY UNIQUE,
@@ -86,14 +86,14 @@ class Games(commands.Cog):
         connection.commit()
         print("La table chat_table a bien été créée!")
 
-    def insert_into_chat_table(user):
+    def insert_into_chat_table(self, user):
         cursor.execute("""
         INSERT INTO chat_table(user) VALUES(?)
         """, (str(user),))
         connection.commit()
         print(f"<@{user}> a bien été ajouté à la conversation avec le chatbot!")
 
-    def delete_from_chat_table(user):
+    def delete_from_chat_table(self, user):
         cursor.execute("""
         DELETE FROM chat_table WHERE user = ?
         """, (str(user),))
@@ -101,7 +101,7 @@ class Games(commands.Cog):
         print(
             f"<@{user}> a bien été retiré de la conversation avec le chatbot!")
 
-    def select_user_from_chat_table(user):
+    def select_user_from_chat_table(self, user):
         cursor.execute("""
         SELECT user FROM chat_table WHERE user = ?
         """, (str(user),))
