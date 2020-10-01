@@ -7,7 +7,6 @@ import json
 import sqlite3
 import traceback
 import asyncio
-import env
 
 
 def get_prefixes(client, message):
@@ -140,5 +139,12 @@ async def change_status():
 for filename in os.listdir('./cogs/'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
+
+if not "TOKEN" in os.environ:
+    env = open("env.py", "r").readline()
+    token = env.split("=")[1].replace(
+        "\n", "").replace(" ", "").replace('"', "")
+    os.environ["TOKEN"] = token
+
 
 client.run(os.environ["TOKEN"])
