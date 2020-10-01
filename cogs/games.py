@@ -23,12 +23,14 @@ class Games(commands.Cog):
     def check_author(self, *args):
         def inner(message):
             ctx = args[0]
-            print(ctx.author.name)
             return str(message.author.id) == str(ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
         return inner
 
-    def check_confirm(self, ctx, message):
-        return (message.content == "oui" or message.content == "non") and self.check_author(message, ctx)
+    def check_confirm(self, *args):
+        def inner(message):
+            ctx = args[0]
+            return (message.content == "oui" or message.content == "non") and self.check_author(message, ctx)
+        return inner
 
     def db_connect(self, db=db_path):
         global connection, cursor
