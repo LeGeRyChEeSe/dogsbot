@@ -9,3 +9,4 @@ PyNaCl
 rsa
 wheel
 youtube-dl
+nltk
