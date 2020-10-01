@@ -1,3 +1,4 @@
+from os import environ
 import discord
 from discord.ext import commands, tasks
 import os
@@ -5,6 +6,8 @@ from itertools import cycle
 import json
 import sqlite3
 import traceback
+import asyncio
+import env
 
 
 def get_prefixes(client, message):
@@ -72,6 +75,10 @@ async def on_guild_remove(guild):
 
 @client.event
 async def on_command_error(ctx, error):
+
+    def check_author(reaction):
+        return reaction.author == ctx.author and reaction == ":ok:"
+
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"Veuillez entrer le nombre d'arguments nécessaires à la commande `{ctx.message.content}`.")
     elif isinstance(error, commands.CommandNotFound):
@@ -85,8 +92,15 @@ async def on_command_error(ctx, error):
         lines = traceback.format_exception(etype, error, trace, verbosity)
         traceback_text = ''.join(lines)
         print(traceback_text)
-
-# Commands
+        message_error = await ctx.send(traceback_text)
+        await message_error.add_reaction(":ok:")
+        try:
+            reaction_to_delete_message = await client.wait_for("raw_reaction_add", check=check_author, timeout=120.0)
+        except asyncio.TimeoutError:
+            await message_error.delete()
+        else:
+            await message_error.delete()
+            # Commands
 
 
 @client.command(aliases=["ld"])
