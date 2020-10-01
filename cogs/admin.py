@@ -2,8 +2,6 @@ import discord
 from discord.ext import commands
 import json
 from datetime import datetime, timezone
-import cse
-import env
 import asyncio
 import sqlite3
 from traceback import format_exception
@@ -226,13 +224,6 @@ class Admin(commands.Cog):
             await message.add_reaction(emoji)
 
         print(jonction)
-
-    @commands.command(hidden=True)
-    @commands.check(team_dev)
-    async def search(self, query):
-        search = cse.Search(env.API_KEY)
-        results = await search.search(query)
-        print(results[0].title)
 
     @commands.command(aliases=["pairs", "prs", "sp"])
     @commands.check(team_dev)

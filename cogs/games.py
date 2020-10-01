@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 import random
 from nltk.chat.util import Chat, reflections
-import cse
 import sqlite3
 import traceback
 import assets.dragonball as dragonball
