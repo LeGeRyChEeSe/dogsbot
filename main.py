@@ -140,7 +140,7 @@ for filename in os.listdir('./cogs/'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
 if not "TOKEN" in os.environ:
-    env = open("env.py", "r").readline()
+    env = open(".env.py", "r").readline()
     token = env.split("=")[1].replace(
         "\n", "").replace(" ", "").replace('"', "")
     os.environ["TOKEN"] = token
