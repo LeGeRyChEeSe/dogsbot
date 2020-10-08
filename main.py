@@ -1,12 +1,12 @@
-from os import environ
-import discord
-from discord.ext import commands, tasks
-import os
-from itertools import cycle
+import asyncio
 import json
+import os
 import sqlite3
 import traceback
-import asyncio
+from itertools import cycle
+
+import discord
+from discord.ext import commands
 
 
 def get_prefixes(client, message):
@@ -69,14 +69,14 @@ async def on_guild_remove(guild):
     with open(file, "w") as f:
         json.dump(prefixes, f, indent=4)
 
+
 # Commands Error
 
 
 @client.event
 async def on_command_error(ctx, error):
-
     def check_author(reaction):
-        return reaction.author == ctx.author and reaction == ":ok:"
+        return reaction.user_id == ctx.author.id and reaction.emoji.name == "\U0001f197"
 
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"Veuillez entrer le nombre d'arguments nécessaires à la commande `{ctx.message.content}`.")
@@ -92,7 +92,7 @@ async def on_command_error(ctx, error):
         traceback_text = ''.join(lines)
         print(traceback_text)
         message_error = await ctx.send(traceback_text)
-        await message_error.add_reaction(":ok:")
+        await message_error.add_reaction("\U0001f197")
         try:
             reaction_to_delete_message = await client.wait_for("raw_reaction_add", check=check_author, timeout=120.0)
         except asyncio.TimeoutError:
@@ -104,7 +104,6 @@ async def on_command_error(ctx, error):
 
 @client.command(aliases=["ld"])
 async def load(ctx, extension):
-
     try:
         client.load_extension(f'cogs.{extension}')
         await ctx.send(f"Chargement de la catégorie {extension} terminée.")
@@ -115,7 +114,6 @@ async def load(ctx, extension):
 
 @client.command(aliases=["ul"])
 async def unload(ctx, extension):
-
     try:
         client.unload_extension(f'cogs.{extension}')
         await ctx.send(f"Déchargement de la catégorie {extension} terminée.")
@@ -128,6 +126,7 @@ async def unload(ctx, extension):
 async def reload(ctx, extension):
     await unload(ctx, extension)
     await load(ctx, extension)
+
 
 # Tasks
 """
@@ -145,6 +144,5 @@ if not "TOKEN" in os.environ:
     token = env.split("=")[1].replace(
         "\n", "").replace(" ", "").replace('"', "")
     os.environ["TOKEN"] = token
-
 
 client.run(os.environ["TOKEN"])

@@ -1,21 +1,22 @@
 import asyncio
-from os import replace
-from sqlite3.dbapi2 import connect
-import discord
-from discord.ext import commands
 import random
-from nltk.chat.util import Chat, reflections
 import sqlite3
 import traceback
+
+import discord
+from discord.ext import commands
+from nltk.chat.util import Chat
+
 import assets.dragonball as dragonball
+from assets.Games.Pendu.pendu import *
 
 
 class Games(commands.Cog):
-
     db_path = "./assets/Data/pairs.db"
 
     def __init__(self, client):
         self.client = client
+        self.game_user = {}
 
     def not_command(self, message):
         return message.content.startswith(str(self.client.command_prefix))
@@ -23,13 +24,16 @@ class Games(commands.Cog):
     def check_author(self, *args):
         def inner(message):
             ctx = args[0]
-            return str(message.author.id) == str(ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+            return str(message.author.id) == str(
+                ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+
         return inner
 
     def check_confirm(self, *args):
         def inner(message):
             ctx = args[0]
             return (message.content == "oui" or message.content == "non") and self.check_author(message, ctx)
+
         return inner
 
     def db_connect(self, db=db_path):
@@ -130,7 +134,9 @@ class Games(commands.Cog):
 
         await ctx.send(f"{random.choice(responses)}")
 
-    @commands.command(brief="Discuter en live avec DogsBot!", description="Discutez sans pression avec DogsBot, pour cela tapez simplement la COMMANDE 'chat'. Vous pouvez maintenant discuter avec lui sans avoir besoin de taper la commande à chaque début de phrase!\n\nSon interaction est pour le moment très limité à de simples bonjour|salut|hey|slt|coucou|wesh|bonsoir|bon matin|hello|hi|cc|hola.\n\nPour quitter la conversation tapez le MOT 'exit'", usage="")
+    @commands.command(brief="Discuter en live avec DogsBot!",
+                      description="Discutez sans pression avec DogsBot, pour cela tapez simplement la COMMANDE 'chat'. Vous pouvez maintenant discuter avec lui sans avoir besoin de taper la commande à chaque début de phrase!\n\nSon interaction est pour le moment très limité à de simples bonjour|salut|hey|slt|coucou|wesh|bonsoir|bon matin|hello|hi|cc|hola.\n\nPour quitter la conversation tapez le MOT 'exit'",
+                      usage="")
     async def chat(self, ctx, *_input_):
 
         # Condition pour éviter de lancer plusieurs fils de discussion avec le chatbot
@@ -156,7 +162,8 @@ class Games(commands.Cog):
                 try:
                     message = message + chat_response
                 except Exception as e:
-                    await ctx.send("Je n'ai pas de réponses à votre message, voulez-vous définir une/plusieurs réponses ? *(**oui**/**non**)*")
+                    await ctx.send(
+                        "Je n'ai pas de réponses à votre message, voulez-vous définir une/plusieurs réponses ? *(**oui**/**non**)*")
                     try:
                         msg_to_confirm = await self.client.wait_for("message", check=self.check_confirm, timeout=120.0)
                     except asyncio.TimeoutError:
@@ -165,14 +172,17 @@ class Games(commands.Cog):
                         return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
                     else:
                         if (msg_to_confirm.content == "oui"):
-                            await ctx.send(f"Veuillez donc entrer une ou plusieurs réponses au message *\"{_input_}\"* avec la syntaxe suivante: `\nréponse_1|réponse_2|réponse_n|...`")
-                            msg_to_edit = await self.client.wait_for("message", check=self.check_author(ctx), timeout=300.0)
+                            await ctx.send(
+                                f"Veuillez donc entrer une ou plusieurs réponses au message *\"{_input_}\"* avec la syntaxe suivante: `\nréponse_1|réponse_2|réponse_n|...`")
+                            msg_to_edit = await self.client.wait_for("message", check=self.check_author(ctx),
+                                                                     timeout=300.0)
                             if msg_to_edit.content == "exit":
                                 await ctx.send("On verra donc une prochaine fois!")
                             else:
                                 self.db_insert("pairs", _input_,
                                                msg_to_edit.content)
-                                await ctx.send(f"Les réponses suivantes ont été ajouté au(x) message(s) *\"{_input_}\"*:\n{str(msg_to_edit.content.split('|'))}")
+                                await ctx.send(
+                                    f"Les réponses suivantes ont été ajouté au(x) message(s) *\"{_input_}\"*:\n{str(msg_to_edit.content.split('|'))}")
                         elif msg_to_confirm.content == "non":
                             await ctx.send("Ok.")
 
@@ -289,9 +299,46 @@ class Games(commands.Cog):
         skill_embed.add_field(name="Skill actif",
                               value=user.skills.replace("_", " "))
         return await ctx.send(embed=skill_embed)
-        # Errors
 
-    @ chat.error
+    @commands.command(name="pendu", brief="Jouez au pendu!",
+                      description="""Règles:\n- Vous avez 8 chances pour découvrir le mot de 8 lettres maximum!\n- Après avoir écrit la commande, tapez simplement la lettre que vous pensez qui est dans le mot.\n- Pour quitter le jeu, écrivez simplement 'exit'.""",
+                      usage='')
+    async def pendu(self, ctx):
+
+        set_pendu(self, ctx)
+        user_pendu = self.game_user[ctx.author.id]
+
+        while user_pendu.is_running:
+
+            if not user_pendu.message_to_delete:
+                user_pendu.message_to_delete = await ctx.send("Veuillez entrer une lettre")
+
+            try:
+                lettre = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+            except asyncio.TimeoutError:
+                return await ctx.send("Temps écoulé!")
+            else:
+                if lettre.content == "exit":
+                    user_pendu.is_running = False
+                    return await ctx.send("Ok! A la prochaine!")
+
+            await user_pendu.message_to_delete.delete()
+            await lettre.delete()
+
+            await user_pendu.running(lettre.content)
+
+            if user_pendu.is_find or user_pendu.is_over:
+                try:
+                    user_quit = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+                except asyncio.TimeoutError:
+                    return await ctx.send("Temps écoulé!")
+                if await user_pendu.retry(user_quit.content) == "o":
+                    user_pendu.__init__(ctx)
+
+
+    # Errors
+
+    @chat.error
     async def on_chat_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.CommandInvokeError):
             await ctx.send("*No Entry*")
