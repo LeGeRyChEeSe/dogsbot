@@ -1,4 +1,5 @@
 from assets.Games.Pendu.fonctions import *
+from discord import Embed
 
 
 def set_pendu(user, ctx, connection, cursor):
@@ -23,22 +24,22 @@ class Pendu:
         self.chances = len(self.mot)
 
     async def is_find_or_over(self):
-        if not "\*" in self.word_hidden:
+        if not "*" in self.word_hidden:
             self.is_find = True
         elif self.user_chances >= self.chances:
             self.is_over = True
 
         if self.is_find:
             if self.user_chances == 1:
-                self.message_to_delete = await self.ctx.send(f"Bravo! Vous avez trouvé le mot {self.mot} en {self.user_chances} coup!\nVoulez-vous rejouer (o/n)?")
+                self.message_to_delete = await self.ctx.send(f"Bravo! Vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coup!\nVoulez-vous rejouer (**o**/**n**)?")
                 return True
             else:
                 self.message_to_delete = await self.ctx.send(
-                    f"Bravo vous avez trouvé le mot {self.mot} en {self.user_chances} coups!\nVoulez-vous rejouer (o/n)?")
+                    f"Bravo vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coups!\nVoulez-vous rejouer (**o**/**n**)?")
                 return True
 
         elif self.is_over:
-            self.message_to_delete = await self.ctx.send(f"Perdu! Le mot était {self.mot}!\nVoulez-vous rejouer (o/n)? ")
+            self.message_to_delete = await self.ctx.send(f"Perdu! Le mot était `{self.mot}`!\nVoulez-vous rejouer (**o**/**n**)? ")
             return True
 
     async def retry(self, user_quit="o"):
@@ -54,8 +55,14 @@ class Pendu:
     def set_word_hidden(self):
         word_hidden = ""
         for i in self.mot:
-            word_hidden += "\*"
+            word_hidden += "*"
         return word_hidden
+
+    def set_embed(self):
+        embed = Embed()
+        embed.set_author(name=self.word_hidden)
+        embed.add_field(name="Chances restantes", value=str(self.chances - self.user_chances))
+        return embed
 
     async def running(self, letter):
 
@@ -68,4 +75,6 @@ class Pendu:
         self.word_hidden, self.user_chances = await user_choice(self)
 
         if not await self.is_find_or_over():
-            self.message_to_delete = await self.ctx.send(self.word_hidden + f"\nNombre de chances restantes: {self.chances - self.user_chances}\n\nVeuillez entrer une lettre")
+            embed = self.set_embed()
+
+            self.message_to_delete = await self.ctx.send(embed=embed)

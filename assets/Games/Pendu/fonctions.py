@@ -30,13 +30,23 @@ def insert_into_pendu(connection, cursor, mot):
         return False
 
 
+def delete_from_pendu(connection, cursor, mot):
+    if check_word_exists(cursor, mot):
+        cursor.execute("""DELETE FROM pendu WHERE mot=?""", (mot,))
+        connection.commit()
+        return True
+    else:
+        return False
+
+
 def word_init(connection, cursor, taille_mot):
     create_db_pendu(connection, cursor)
     mots = cursor.execute("""SELECT mot FROM pendu""").fetchall()
     mot = choice(mots)[0]
     print(mots)
     while len(mot) > taille_mot:
-        mot = choice(mots)
+        mot = choice(mots)[0]
+    print(mot)
     return mot
 
 
@@ -48,7 +58,7 @@ async def user_choice(self):
         if l in self.letters_list:
             self.word_hidden += l
         else:
-            self.word_hidden += "\*"
+            self.word_hidden += "*"
 
     if self.word_hidden == last_word_hidden:
         self.user_chances += 1

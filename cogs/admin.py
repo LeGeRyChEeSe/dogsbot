@@ -52,11 +52,11 @@ class Admin(commands.Cog):
                 return False
 
     def db_connect(self, db=db_path):
-        global connection, cursor
         connection = sqlite3.connect(db)
         cursor = connection.cursor()
+        return connection, cursor
 
-    def db_close(self):
+    def db_close(self, connection):
         connection.close()
 
     # Events
@@ -133,8 +133,21 @@ class Admin(commands.Cog):
     @commands.command(name="clear", brief="Effacer des messages", description="Permet de supprimer un nombre défini de messages dans un salon.", usage="<nombre_de_messages>", aliases=["purge", "erase", "delete"])
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx, amount=5):
-        await ctx.channel.purge(limit=amount + 1)
-        print(f"{amount} messages ont été effacé du salon {ctx.channel.name}")
+        sure = await ctx.send(f"Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal (**o**/**n**)?")
+        message = ""
+        try:
+            message = await self.client.wait_for("message", check=self.check_author(ctx), timeout=60.0)
+        except asyncio.TimeoutError:
+            await ctx.send("Temps écoulé!")
+            await message.delete()
+        else:
+            if message.content == "o":
+                await ctx.channel.purge(limit=amount + 3)
+                print(f"{amount} messages ont été effacé du salon {ctx.channel.name}")
+            else:
+                await sure.delete()
+                await message.delete()
+                await ctx.message.delete()
 
     @commands.command(name="kick", brief="Expulser un membre du serveur")
     @commands.has_permissions(manage_messages=True)
@@ -228,42 +241,42 @@ class Admin(commands.Cog):
     @commands.command(aliases=["pairs", "prs", "sp"])
     @commands.check(team_dev)
     async def see_pairs(self, ctx):
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
+        connection, cursor = self.db_connect()
         cursor.execute("""
          SELECT * FROM pairs
          """)
         await ctx.send(cursor.fetchall())
+        self.db_close(connection)
 
     @commands.command(hidden=True, aliases=["rmp", "rmpairs", "upp", "upairs"])
     @commands.check(team_dev)
     async def update_pairs(self, ctx):
 
-        def update_questions_pairs(id: int, questions: str):
+        def update_questions_pairs(connection, cursor, id: int, questions: str):
             cursor.execute(
                 "UPDATE pairs SET questions = ? WHERE id = ?", (questions, id))
             cursor.close()
             connection.commit()
 
-        def update_responses_pairs(id: int, responses: str):
+        def update_responses_pairs(connection, cursor, id: int, responses: str):
             cursor.execute(
                 "UPDATE pairs SET responses = ? WHERE id = ?", (responses, id))
             cursor.close()
             connection.commit()
 
-        def select_from_pairs(*id: int):
+        def select_from_pairs(cursor, *id: int):
             if not id:
                 return cursor.execute("SELECT id, questions, responses FROM pairs").fetchall()
             else:
                 return cursor.execute("SELECT id, questions, responses FROM pairs WHERE id = ?", (id[0]),).fetchall()
 
-        def delete_from_pairs(id: int):
+        def delete_from_pairs(connection, cursor, id: int):
             cursor.execute("DELETE FROM pairs WHERE id = ?", (id,))
-            cursor.close()
+            cursor.close(connection)
             connection.commit()
 
-        self.db_connect()
-        questions = select_from_pairs()
+        connection, cursor = self.db_connect()
+        questions = select_from_pairs(cursor)
         list_pairs = ""
 
         for question in questions:
@@ -275,25 +288,25 @@ class Admin(commands.Cog):
         try:
             id = await self.client.wait_for("message", check=check_if_int, timeout=120.0)
         except asyncio.TimeoutError:
-            self.db_close()
+            self.db_close(connection)
             await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
         else:
             if id.content == "exit":
-                self.db_close()
+                self.db_close(connection)
                 return await ctx.send("Commande annulée.")
             await ctx.send("Voulez-vous modifier ou supprimer la ligne ? (`m` ou `s`)")
 
             try:
                 ask_modify_db = await self.client.wait_for("message", check=check_remove_or_update("m", "s"), timeout=120.0)
             except asyncio.TimeoutError:
-                self.db_close()
+                self.db_close(connection)
                 await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
             else:
                 if ask_modify_db.content == "exit":
-                    self.db_close()
+                    self.db_close(connection)
                     return await ctx.send("Commande annulée.")
                 elif ask_modify_db.content == "m":
-                    select_line = select_from_pairs(id.content)
+                    select_line = select_from_pairs(cursor, id.content)
                     response = f"`{select_line[0][0]}`: \"{select_line[0][1]}\" -> \"{select_line[0][2].split('|')}\""
                     await ctx.send(f"Voici la ligne que vous avez sélectionné:\n{response}\n\nVoulez-vous modifier les `q`uestions, les `r`éponses ou `t`out à la fois ? (`q`, `r`, `t`)")
 
@@ -317,9 +330,9 @@ class Admin(commands.Cog):
                                 if update_question.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
-                                update_questions_pairs(
+                                update_questions_pairs(connection, cursor,
                                     id.content, update_question.content)
-                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
                         elif update_choice.content == "r":
@@ -333,9 +346,9 @@ class Admin(commands.Cog):
                                 if update_responses.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
-                                update_responses_pairs(
+                                update_responses_pairs(connection, cursor,
                                     id.content, update_responses.content)
-                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
                         elif update_choice.content == "t":
@@ -349,7 +362,7 @@ class Admin(commands.Cog):
                                 if update_question.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
-                                update_questions_pairs(
+                                update_questions_pairs(connection, cursor,
                                     id.content, update_question.content)
                             await ctx.send("Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
                             try:
@@ -361,14 +374,14 @@ class Admin(commands.Cog):
                                 if update_responses.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
-                                update_responses_pairs(
+                                update_responses_pairs(connection, cursor,
                                     id.content, update_responses.content)
-                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(id.content)}")
+                                await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
                 elif ask_modify_db.content == "s":
-                    delete_from_pairs(id.content)
-                    self.db_close()
+                    delete_from_pairs(connection, cursor, id.content)
+                    self.db_close(connection)
                     return await ctx.send(f"La ligne `{id.content}` a bien été supprimée de la table!")
 
     @commands.command()
@@ -380,32 +393,35 @@ class Admin(commands.Cog):
     @commands.command(aliases=["dpt", "dt"])
     @commands.check(team_dev)
     async def drop_table(self, ctx, table):
-        self.db_connect()
+        connection, cursor = self.db_connect()
         cursor.execute(f"""
         DROP TABLE {table}
         """)
         connection.commit()
         print(f"{table} a été supprimé!")
         await ctx.send(f"{table} a été supprimé!")
+        self.db_close(connection)
 
     @commands.command(aliases=["dll", "dl"])
     @commands.check(team_dev)
     async def delete_line(self, ctx, name, value, table):
-        self.db_connect()
+        connection, cursor = self.db_connect()
         cursor.execute(f"""
         DELETE FROM {table} WHERE {name}={value}
         """)
         connection.commit()
         print(f"{table}: {name} -> {value} a été supprimé!")
         await ctx.send(f"`{table}: {name} -> {value}` a été supprimé!")
+        self.db_close(connection)
 
     @commands.command(aliases=["select", "sl"])
     async def select_from_table(self, ctx, select, _from):
-        self.db_connect()
+        connection, cursor = self.db_connect()
         selection = cursor.execute(f"""
         SELECT {select} FROM {_from}
         """).fetchall()
-        return await ctx.send(str(selection))
+        await ctx.send(str(selection))
+        self.db_close(connection)
 
     @bot.error
     async def bot_error(self, ctx, error):
