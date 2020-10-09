@@ -1,11 +1,40 @@
 from random import choice
 
-from assets.Games.Pendu.donnees import *
+
+def create_db_pendu(connection, cursor):
+    cursor.execute("""
+                CREATE TABLE IF NOT EXISTS pendu(
+                        id INTEGER PRIMARY KEY UNIQUE,
+                        mot TEXT
+                        )
+                """)
+    connection.commit()
 
 
-def word_init():
+def check_word_exists(cursor, mot):
+    mots = cursor.execute("""SELECT mot FROM pendu""").fetchall()
+    for m in mots:
+        if m[0] == mot:
+            return True
+    return False
+
+
+def insert_into_pendu(connection, cursor, mot):
+    if not check_word_exists(cursor, mot):
+        cursor.execute("""
+                    INSERT INTO pendu(mot) VALUES(?)
+                    """, (mot,))
+        connection.commit()
+        return True
+    else:
+        return False
+
+
+def word_init(connection, cursor, taille_mot):
+    create_db_pendu(connection, cursor)
+    mots = cursor.execute("""SELECT mot FROM pendu""").fetchall()
     mot = choice(mots)
-    while len(mot) > 8:
+    while len(mot) > taille_mot:
         mot = choice(mots)
     return mot
 

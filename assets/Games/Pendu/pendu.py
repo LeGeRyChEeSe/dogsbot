@@ -1,27 +1,31 @@
 from assets.Games.Pendu.fonctions import *
 
 
-def set_pendu(user, ctx):
-    user.game_user[ctx.author.id] = Pendu(ctx)
+def set_pendu(user, ctx, connection, cursor):
+    user.game_user[ctx.author.id] = Pendu(ctx, connection, cursor)
 
 
 class Pendu:
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, connection, cursor):
         self.ctx = ctx
         self.is_running = True
         self.is_find = False
         self.is_over = False
-        self.mot = word_init()
+        self.connection = connection
+        self.cursor = cursor
+        self.taille_mot = 8
+        self.mot = word_init(self.connection, self.cursor, self.taille_mot)[0]
         self.letters_list = []
         self.user_chances = 0
         self.word_hidden = self.set_word_hidden()
         self.message_to_delete = None
+        self.chances = len(self.mot)
 
     async def is_find_or_over(self):
         if not "\*" in self.word_hidden:
             self.is_find = True
-        elif self.user_chances >= chances:
+        elif self.user_chances >= self.chances:
             self.is_over = True
 
         if self.is_find:
@@ -64,4 +68,4 @@ class Pendu:
         self.word_hidden, self.user_chances = await user_choice(self)
 
         if not await self.is_find_or_over():
-            self.message_to_delete = await self.ctx.send(self.word_hidden + f"\nNombre de chances restantes: {chances - self.user_chances}\n\nVeuillez entrer une lettre")
+            self.message_to_delete = await self.ctx.send(self.word_hidden + f"\nNombre de chances restantes: {self.chances - self.user_chances}\n\nVeuillez entrer une lettre")
