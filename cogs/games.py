@@ -373,6 +373,7 @@ class Games(commands.Cog):
                             user_pendu.taille_mot = int(add_word[1])
 
         self.db_close(connection)
+        self.game_user[ctx.author.id] = None
 
     # Errors
 

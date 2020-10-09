@@ -33,7 +33,8 @@ def insert_into_pendu(connection, cursor, mot):
 def word_init(connection, cursor, taille_mot):
     create_db_pendu(connection, cursor)
     mots = cursor.execute("""SELECT mot FROM pendu""").fetchall()
-    mot = choice(mots)
+    mot = choice(mots)[0]
+    print(mots)
     while len(mot) > taille_mot:
         mot = choice(mots)
     return mot

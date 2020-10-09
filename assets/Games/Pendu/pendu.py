@@ -15,7 +15,7 @@ class Pendu:
         self.connection = connection
         self.cursor = cursor
         self.taille_mot = 8
-        self.mot = word_init(self.connection, self.cursor, self.taille_mot)[0]
+        self.mot = word_init(self.connection, self.cursor, self.taille_mot)
         self.letters_list = []
         self.user_chances = 0
         self.word_hidden = self.set_word_hidden()
