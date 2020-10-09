@@ -30,15 +30,15 @@ class Pendu:
 
         if self.is_find:
             if self.user_chances == 1:
-                self.message_to_delete = await self.ctx.send(f"Bravo! Vous avez trouvé le mot {self.mot} en {self.user_chances} coup!\nVoulez-vous rejouer (O/n)?")
+                self.message_to_delete = await self.ctx.send(f"Bravo! Vous avez trouvé le mot {self.mot} en {self.user_chances} coup!\nVoulez-vous rejouer (o/n)?")
                 return True
             else:
                 self.message_to_delete = await self.ctx.send(
-                    f"Bravo vous avez trouvé le mot {self.mot} en {self.user_chances} coups!\nVoulez-vous rejouer (O/n)?")
+                    f"Bravo vous avez trouvé le mot {self.mot} en {self.user_chances} coups!\nVoulez-vous rejouer (o/n)?")
                 return True
 
         elif self.is_over:
-            self.message_to_delete = await self.ctx.send(f"Perdu! Le mot était {self.mot}!\nVoulez-vous rejouer (O/n)? ")
+            self.message_to_delete = await self.ctx.send(f"Perdu! Le mot était {self.mot}!\nVoulez-vous rejouer (o/n)? ")
             return True
 
     async def retry(self, user_quit="o"):
