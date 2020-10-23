@@ -43,10 +43,8 @@ def word_init(connection, cursor, taille_mot):
     create_db_pendu(connection, cursor)
     mots = cursor.execute("""SELECT mot FROM pendu""").fetchall()
     mot = choice(mots)[0]
-    print(mots)
     while len(mot) > taille_mot:
         mot = choice(mots)[0]
-    print(mot)
     return mot
 
 
@@ -58,7 +56,7 @@ async def user_choice(self):
         if l in self.letters_list:
             self.word_hidden += l
         else:
-            self.word_hidden += "*"
+            self.word_hidden += "_"
 
     if self.word_hidden == last_word_hidden:
         self.user_chances += 1

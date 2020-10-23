@@ -1,10 +1,11 @@
+import asyncio
+import json
+import sqlite3
+from datetime import datetime, timezone
+from traceback import format_exception
+
 import discord
 from discord.ext import commands
-import json
-from datetime import datetime, timezone
-import asyncio
-import sqlite3
-from traceback import format_exception
 
 jonction = None
 db_path = "./assets/Data/pairs.db"
@@ -22,7 +23,9 @@ class Admin(commands.Cog):
         def inner(message):
             ctx = args[0]
             print(ctx.author.name)
-            return str(message.author.id) == str(ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+            return str(message.author.id) == str(
+                ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+
         return inner
 
     def check_remove_or_update(self, *args):
@@ -35,6 +38,7 @@ class Admin(commands.Cog):
                 if message.content == i:
                     return True
             return False
+
         return inner
 
     def check_if_int(self, id):
@@ -91,7 +95,8 @@ class Admin(commands.Cog):
                             guild.roles, id=message_role_id)
                         member = guild.get_member(user_id)
                         await member.add_roles(role)
-                        return print(f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name}!")
+                        return print(
+                            f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name}!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -121,16 +126,14 @@ class Admin(commands.Cog):
                             guild.roles, id=message_role_id)
                         member = guild.get_member(user_id)
                         await member.remove_roles(role)
-                        return print(f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name}!")
+                        return print(
+                            f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name}!")
 
     # Commands
 
-    @commands.command(name="ping", brief="Bot latency", description="Réponds par 'Pong!' en indiquant la latence du bot.")
-    @commands.has_permissions(manage_messages=True)
-    async def ping(self, ctx):
-        await ctx.send(f"Pong! (Latence du bot: {round(self.client.latency * 1000)}ms)")
-
-    @commands.command(name="clear", brief="Effacer des messages", description="Permet de supprimer un nombre défini de messages dans un salon.", usage="<nombre_de_messages>", aliases=["purge", "erase", "delete"])
+    @commands.command(name="clear", brief="Effacer des messages",
+                      description="Permet de supprimer un nombre défini de messages dans un salon.",
+                      usage="<nombre_de_messages>", aliases=["purge", "erase", "delete"])
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx, amount=5):
         sure = await ctx.send(f"Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal (**o**/**n**)?")
@@ -183,7 +186,9 @@ class Admin(commands.Cog):
     async def bot(self, ctx):
         await ctx.send(self.client.user.id)
 
-    @commands.command(name="changeprefix", brief="Modifier le prefix de commande", description="Modifier le prefix de commande. Par défaut le prefix est !\n\n", usage="<new_prefix>")
+    @commands.command(name="changeprefix", brief="Modifier le prefix de commande",
+                      description="Modifier le prefix de commande. Par défaut le prefix est !\n\n",
+                      usage="<new_prefix>")
     @commands.check(team_dev)
     async def changeprefix(self, ctx, prefix):
         file = ".\\assets\\prefixes.json"
@@ -197,7 +202,8 @@ class Admin(commands.Cog):
             json.dump(prefixes, f, indent=4)
         await ctx.send(f"Le préfix a été changé: `{prefix}`")
 
-    @commands.command(brief="Ajouter des rôles avec des réactions", usage="<reaction1>;<role1>,<reactionN>;<roleN>", description="Renvoie un embed contenant l'attribution de chaque réaction à un rôle spécifique. Ne peut pas contenir une même réaction pour 2 rôles à la fois.")
+    @commands.command(brief="Ajouter des rôles avec des réactions", usage="<reaction1>;<role1>,<reactionN>;<roleN>",
+                      description="Renvoie un embed contenant l'attribution de chaque réaction à un rôle spécifique. Ne peut pas contenir une même réaction pour 2 rôles à la fois.")
     @commands.check(team_dev)
     async def addroles(self, ctx, *, content):
         await ctx.message.delete()
@@ -268,7 +274,7 @@ class Admin(commands.Cog):
             if not id:
                 return cursor.execute("SELECT id, questions, responses FROM pairs").fetchall()
             else:
-                return cursor.execute("SELECT id, questions, responses FROM pairs WHERE id = ?", (id[0]),).fetchall()
+                return cursor.execute("SELECT id, questions, responses FROM pairs WHERE id = ?", (id[0]), ).fetchall()
 
         def delete_from_pairs(connection, cursor, id: int):
             cursor.execute("DELETE FROM pairs WHERE id = ?", (id,))
@@ -281,10 +287,11 @@ class Admin(commands.Cog):
 
         for question in questions:
             list_pairs += "`" + str(question[0]) + \
-                "`" + ": \"" + question[1] + "\" -> " + \
-                str(question[2].split("|")) + "\"\n"
+                          "`" + ": \"" + question[1] + "\" -> " + \
+                          str(question[2].split("|")) + "\"\n"
 
-        await ctx.send(f"**Voici la liste des questions associées à leurs réponses actuellement dans le chatbot:**\n{list_pairs}\nVeuillez sélectionner un `numéro` pour la modifier ou la supprimer.")
+        await ctx.send(
+            f"**Voici la liste des questions associées à leurs réponses actuellement dans le chatbot:**\n{list_pairs}\nVeuillez sélectionner un `numéro` pour la modifier ou la supprimer.")
         try:
             id = await self.client.wait_for("message", check=check_if_int, timeout=120.0)
         except asyncio.TimeoutError:
@@ -297,7 +304,8 @@ class Admin(commands.Cog):
             await ctx.send("Voulez-vous modifier ou supprimer la ligne ? (`m` ou `s`)")
 
             try:
-                ask_modify_db = await self.client.wait_for("message", check=check_remove_or_update("m", "s"), timeout=120.0)
+                ask_modify_db = await self.client.wait_for("message", check=check_remove_or_update("m", "s"),
+                                                           timeout=120.0)
             except asyncio.TimeoutError:
                 self.db_close(connection)
                 await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
@@ -308,10 +316,13 @@ class Admin(commands.Cog):
                 elif ask_modify_db.content == "m":
                     select_line = select_from_pairs(cursor, id.content)
                     response = f"`{select_line[0][0]}`: \"{select_line[0][1]}\" -> \"{select_line[0][2].split('|')}\""
-                    await ctx.send(f"Voici la ligne que vous avez sélectionné:\n{response}\n\nVoulez-vous modifier les `q`uestions, les `r`éponses ou `t`out à la fois ? (`q`, `r`, `t`)")
+                    await ctx.send(
+                        f"Voici la ligne que vous avez sélectionné:\n{response}\n\nVoulez-vous modifier les `q`uestions, les `r`éponses ou `t`out à la fois ? (`q`, `r`, `t`)")
 
                     try:
-                        update_choice = await self.client.wait_for("message", check=check_remove_or_update("q", "r", "t"), timeout=120.0)
+                        update_choice = await self.client.wait_for("message",
+                                                                   check=check_remove_or_update("q", "r", "t"),
+                                                                   timeout=120.0)
                     except asyncio.TimeoutError:
                         self.db_close()
                         await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
@@ -320,62 +331,74 @@ class Admin(commands.Cog):
                             self.db_close()
                             return await ctx.send("Commande annulée.")
                         elif update_choice.content == "q":
-                            await ctx.send("Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
+                            await ctx.send(
+                                "Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
                             try:
-                                update_question = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                                update_question = await self.client.wait_for("message", check=self.check_author,
+                                                                             timeout=300.0)
                             except asyncio.TimeoutError:
                                 self.db_close()
-                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                                await ctx.send(
+                                    "Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
                             else:
                                 if update_question.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
                                 update_questions_pairs(connection, cursor,
-                                    id.content, update_question.content)
+                                                       id.content, update_question.content)
                                 await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
                         elif update_choice.content == "r":
-                            await ctx.send("Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
+                            await ctx.send(
+                                "Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
                             try:
-                                update_responses = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                                update_responses = await self.client.wait_for("message", check=self.check_author,
+                                                                              timeout=300.0)
                             except asyncio.TimeoutError:
                                 self.db_close()
-                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                                await ctx.send(
+                                    "Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
                             else:
                                 if update_responses.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
                                 update_responses_pairs(connection, cursor,
-                                    id.content, update_responses.content)
+                                                       id.content, update_responses.content)
                                 await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
                         elif update_choice.content == "t":
-                            await ctx.send("Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
+                            await ctx.send(
+                                "Veuillez écrire les nouvelles questions pour cette ligne en respectant la syntaxe suivante:\n`question_1|question_2|question_n|...`")
                             try:
-                                update_question = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                                update_question = await self.client.wait_for("message", check=self.check_author,
+                                                                             timeout=300.0)
                             except asyncio.TimeoutError:
                                 self.db_close()
-                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                                await ctx.send(
+                                    "Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
                             else:
                                 if update_question.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
                                 update_questions_pairs(connection, cursor,
-                                    id.content, update_question.content)
-                            await ctx.send("Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
+                                                       id.content, update_question.content)
+                            await ctx.send(
+                                "Veuillez écrire les nouvelles réponses pour cette ligne en respectant la syntaxe suivante:\n`réponse_1|réponse_2|réponse_n|...`")
                             try:
-                                update_responses = await self.client.wait_for("message", check=self.check_author, timeout=300.0)
+                                update_responses = await self.client.wait_for("message", check=self.check_author,
+                                                                              timeout=300.0)
                             except asyncio.TimeoutError:
                                 self.db_close()
-                                await ctx.send("Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
+                                await ctx.send(
+                                    "Vous avez mis trop de temps à répondre, je mets donc fin à notre échange.")
                             else:
                                 if update_responses.content == "exit":
                                     self.db_close()
                                     return await ctx.send("Commande annulée.")
                                 update_responses_pairs(connection, cursor,
-                                    id.content, update_responses.content)
+                                                       id.content, update_responses.content)
                                 await ctx.send(f"Voici la nouvelle ligne:\n{select_from_pairs(cursor, id.content)}")
                                 self.db_close()
                                 return
@@ -388,6 +411,7 @@ class Admin(commands.Cog):
     async def owner(self, ctx):
         owner = ctx.guild.owner_id
         await ctx.send(f"Le propriétaire de {ctx.guild.name} est <@{owner}>!")
+
     # Commands Error
 
     @commands.command(aliases=["dpt", "dt"])

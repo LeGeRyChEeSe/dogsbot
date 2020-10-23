@@ -1,6 +1,3 @@
-import discord
-
-
 class Skills:
 
     def __init__(self, name: str, description: str, damage: int, cost: int):

@@ -1,10 +1,9 @@
+import asyncio
+import os
 from asyncio import queues
+
 from discord.ext import commands
 from discord.utils import get
-import youtube_dl
-import shutil
-import os
-import asyncio
 
 
 class Music(commands.Cog):
@@ -13,7 +12,7 @@ class Music(commands.Cog):
         self.client = client
 
     # Commands
-    @ commands.command()
+    @commands.command()
     async def join(self, ctx):
         client = self.client
         global voice
@@ -26,7 +25,7 @@ class Music(commands.Cog):
             voice = await channel.connect()
         await ctx.send(f"J'ai rejoins le canal {channel}!")
 
-    @ commands.command()
+    @commands.command()
     async def leave(self, ctx):
         client = self.client
         channel = ctx.author.voice.channel
@@ -36,7 +35,7 @@ class Music(commands.Cog):
             await voice.disconnect()
             await ctx.send(f"J'ai quitté le canal {channel}!")
 
-    @ commands.command(aliases=["p", "pl", "pla"])
+    @commands.command(aliases=["p", "pl", "pla"])
     async def play(self, ctx, url: str):
         client = self.client
 

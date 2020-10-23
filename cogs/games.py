@@ -302,7 +302,7 @@ class Games(commands.Cog):
 
     @commands.command(name="pendu", brief="Jouez au pendu!",
                       description="""Règles:
-                      - Vous avez 8 chances (par défaut) pour découvrir un mot pioché aléatoirement!
+                      - Vous avez autant de chances que le nombre de lettre dans le mot pour découvrir ce mot pioché aléatoirement!
                       - Après avoir écrit la commande, tapez simplement la lettre que vous pensez qui est dans le mot.
                       - Pour quitter le jeu, écrivez simplement 'exit'.
                       
@@ -313,6 +313,7 @@ class Games(commands.Cog):
                           'pendu taille <nombre_entre_3_et_25_inclus>'""",
                       usage='[add <nouveau_mot> | taille <nombre_entre_3_et_25_inclus>]')
     async def pendu(self, ctx, *add_word):
+        await ctx.message.delete()
 
         from assets.Games.Pendu.fonctions import insert_into_pendu
 
@@ -330,7 +331,8 @@ class Games(commands.Cog):
                     await ctx.send(f"Le mot {add_word[1]} a bien été supprimé!")
                     return self.db_close(connection)
                 else:
-                    await ctx.send(f"Le mot {add_word[1]} n'est pas présent dans ma base de données, je ne peux donc pas le supprimer!")
+                    await ctx.send(
+                        f"Le mot {add_word[1]} n'est pas présent dans ma base de données, je ne peux donc pas le supprimer!")
                     return self.db_close(connection)
 
         set_pendu(self, ctx, connection, cursor)
@@ -350,7 +352,7 @@ class Games(commands.Cog):
         while user_pendu.is_running:
 
             if not user_pendu.message_to_delete:
-                user_pendu.message_to_delete = await ctx.send("Veuillez entrer une lettre")
+                user_pendu.message_to_delete = await ctx.send(f"Veuillez entrer une lettre {ctx.author.mention}")
 
             try:
                 lettre = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
@@ -362,8 +364,9 @@ class Games(commands.Cog):
                     await set_taille_message.delete()
                     set_taille_message = None
                 if lettre.content == "exit":
+                    await user_pendu.message_to_delete.delete()
+                    await lettre.delete()
                     user_pendu.is_running = False
-                    await ctx.send("Ok! A la prochaine!")
                     break
 
             await user_pendu.message_to_delete.delete()
@@ -377,18 +380,22 @@ class Games(commands.Cog):
                 except asyncio.TimeoutError:
                     await ctx.send("Temps écoulé!")
                     break
-                if await user_pendu.retry(user_quit.content) == "o":
+
+                retry = await user_pendu.retry(user_quit.content)
+                if retry == "o":
                     await user_pendu.message_to_delete.delete()
-                    user_quit.delete()
+                    await user_quit.delete()
                     user_pendu.__init__(ctx, connection, cursor)
                     user_pendu.user_chances = 0
                     if len(add_word) > 0:
                         if add_word[0] == "taille" and int(add_word[1]) in range(3, 26, 1):
                             user_pendu.taille_mot = int(add_word[1])
+                elif retry == "n":
+                    await user_pendu.message_to_delete.delete()
+                    await user_quit.delete()
 
         self.db_close(connection)
         self.game_user[ctx.author.id] = None
-        await user_pendu.message_to_delete.delete()
 
     # Errors
 
