@@ -1,0 +1,4 @@
+#LWP-Cookies-2.0
+Set-Cookie3: NID="204=ufYPFqSslFdGLFQFWYdNWoOqLCbe3yc9v4EeAjYExA95qblPK6POMPsuKgCiqyN8X0m5qRufJ0qOTA7N6KtE6ROaav-FYOZYWo7BCmifswPR8vKBKljKFdsz2PM72TCAahg2YvQqqEjpR1TEkWfwFtc0Da7iHeZBcrHkDUdOorc"; path="/"; domain=".google.fr"; path_spec; domain_dot; expires="2021-04-25 22:28:33Z"; HttpOnly=None; version=0
+Set-Cookie3: CGIC=""; path="/complete/search"; domain=".google.fr"; path_spec; domain_dot; expires="2021-04-22 21:05:22Z"; HttpOnly=None; version=0
+Set-Cookie3: CGIC=""; path="/search"; domain=".google.fr"; path_spec; domain_dot; expires="2021-04-22 21:05:22Z"; HttpOnly=None; version=0

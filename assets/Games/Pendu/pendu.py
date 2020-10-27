@@ -1,3 +1,6 @@
+import datetime
+
+from discord.ext import commands
 from discord import Embed
 
 from assets.Games.Pendu.fonctions import *
@@ -10,7 +13,7 @@ def set_pendu(user, ctx, connection, cursor):
 class Pendu:
 
     def __init__(self, ctx, connection, cursor):
-        self.ctx = ctx
+        self.ctx: commands.Context = ctx
         self.is_running = True
         self.is_find = False
         self.is_over = False
@@ -33,11 +36,11 @@ class Pendu:
         if self.is_find:
             if self.user_chances == 1:
                 self.message_to_delete = await self.ctx.send(
-                    f"Bravo! Vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coup {self.ctx.author.mention}!\nVoulez-vous rejouer (**o**/**n**)?")
+                    f"Bravo {self.ctx.author.mention}! Vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coup!\nVoulez-vous rejouer (**o**/**n**)?")
                 return True
             else:
                 self.message_to_delete = await self.ctx.send(
-                    f"Bravo vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coups {self.ctx.author.mention}!\nVoulez-vous rejouer (**o**/**n**)?")
+                    f"Bravo {self.ctx.author.mention}! Vous avez trouvé le mot `{self.mot}` en {self.user_chances}/{self.chances} coups!\nVoulez-vous rejouer (**o**/**n**)?")
                 return True
 
         elif self.is_over:
@@ -69,7 +72,10 @@ class Pendu:
         word_hidden_with_spaces = " ".join(word_hidden_split)
         embed.set_author(name=word_hidden_with_spaces)
         embed.add_field(name="Chances restantes", value=str(self.chances - self.user_chances), inline=True)
-        embed.add_field(name="Lettres utilisées", value=str(", ".join(self.letters_list)), inline=False)
+        embed.add_field(name="Lettres utilisées", value=str(", ".join(self.letters_list)).upper(), inline=False)
+        embed.set_thumbnail(url=self.ctx.author.avatar_url)
+        embed.set_footer(text=self.ctx.author.name)
+        embed.timestamp = datetime.datetime.utcnow()
         return embed
 
     async def running(self, letter):

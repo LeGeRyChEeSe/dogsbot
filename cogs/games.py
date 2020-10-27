@@ -142,7 +142,7 @@ class Games(commands.Cog):
         # Condition pour éviter de lancer plusieurs fils de discussion avec le chatbot
         connection, cursor = self.db_connect()
         self.create_chat_table(connection, cursor)
-        user = self.select_user_from_chat_table(ctx.author.id)
+        user = self.select_user_from_chat_table(cursor, ctx.author.id)
         if user:
             return await ctx.send(f"Je suis déjà à votre écoute {ctx.author.mention} dans un autre canal!")
 
@@ -163,7 +163,8 @@ class Games(commands.Cog):
                     message = message + chat_response
                 except Exception as e:
                     await ctx.send(
-                        "Je n'ai pas de réponses à votre message, voulez-vous définir une/plusieurs réponses ? *(**oui**/**non**)*")
+                        "Je n'ai pas de réponses à votre message, voulez-vous définir une/plusieurs réponses ? *("
+                        "**oui**/**non**)*")
                     try:
                         msg_to_confirm = await self.client.wait_for("message", check=self.check_confirm, timeout=120.0)
                     except asyncio.TimeoutError:
@@ -171,7 +172,7 @@ class Games(commands.Cog):
                         self.db_close(connection)
                         return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
                     else:
-                        if (msg_to_confirm.content == "oui"):
+                        if msg_to_confirm.content == "oui":
                             await ctx.send(
                                 f"Veuillez donc entrer une ou plusieurs réponses au message *\"{_input_}\"* avec la syntaxe suivante: `\nréponse_1|réponse_2|réponse_n|...`")
                             msg_to_edit = await self.client.wait_for("message", check=self.check_author(ctx),

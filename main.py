@@ -1,25 +1,25 @@
 import asyncio
-import json
 import os
-import sqlite3
 import traceback
 from itertools import cycle
 
 import discord
 from discord.ext import commands
 
+from events.functions import *
 
-def get_prefixes(client, message):
-    with open(file, "r") as f:
-        prefixes = json.load(f)
 
-    return prefixes[str(message.guild.id)]
+def get_prefixes(client: commands.Bot, message: discord.Message):
+    connection, cursor = db_connect()
+
+    prefix = select(cursor, _select="prefix", _from="prefix", _where=f"guild={message.guild.id}")
+
+    return str(prefix[0])
 
 
 file = "assets/prefixes.json"
 client = commands.Bot(command_prefix=get_prefixes)
 status = cycle(['Status 1', 'Status 2'])
-db_path = "./assets/Data/pairs.db"
 
 
 # Events
@@ -28,46 +28,39 @@ db_path = "./assets/Data/pairs.db"
 @client.event
 async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=discord.Game("Wouaf | !help"))
-    connection = sqlite3.connect(db_path)
-    cursor = connection.cursor()
+    connection, cursor = db_connect()
+
     try:
         cursor.execute("DROP TABLE chat_table")
     except sqlite3.OperationalError:
         pass
+    else:
+        connection.commit()
     connection.close()
     print("Le bot est prêt.")
 
 
 @client.event
-async def on_member_join(member):
+async def on_member_join(member: discord.Member):
     print(f"{member} a rejoint le serveur {member.guild.name}!")
 
 
 @client.event
-async def on_member_remove(member):
+async def on_member_remove(member: discord.Member):
     print(f'{member} a quitté le serveur {member.guild.name}!')
 
 
 @client.event
-async def on_guild_join(guild):
-    with open(file, "r") as f:
-        prefixes = json.load(f)
-
-    prefixes[str(guild.id)] = "!"
-
-    with open(file, "w") as f:
-        json.dump(prefixes, f, indent=4)
+async def on_guild_join(guild: discord.Guild):
+    connection, cursor = db_connect()
+    insert(connection, cursor, _into="prefix", _names=["guild", "prefix"], _values=[guild.id, "!"])
+    db_close(connection)
 
 
 @client.event
-async def on_guild_remove(guild):
-    with open(file, "r") as f:
-        prefixes = json.load(f)
-
-    prefixes.pop(str(guild.id))
-
-    with open(file, "w") as f:
-        json.dump(prefixes, f, indent=4)
+async def on_guild_remove(guild: discord.Guild):
+    connection, cursor = db_connect()
+    delete(connection, cursor, _from="prefix", _where=f"guild={guild.id}")
 
 
 # Commands Error
