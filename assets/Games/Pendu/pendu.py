@@ -70,7 +70,7 @@ class Pendu:
         for i in self.word_hidden:
             word_hidden_split.append(i)
         word_hidden_with_spaces = " ".join(word_hidden_split)
-        embed.set_author(name=word_hidden_with_spaces)
+        embed.set_author(name=word_hidden_with_spaces.upper())
         embed.add_field(name="Chances restantes", value=str(self.chances - self.user_chances), inline=True)
         embed.add_field(name="Lettres utilisées", value=str(", ".join(self.letters_list)).upper(), inline=False)
         embed.set_thumbnail(url=self.ctx.author.avatar_url)
@@ -81,7 +81,7 @@ class Pendu:
     async def running(self, letter):
 
         if await self.check_letter(letter):
-            self.message_to_delete = await self.ctx.send("Veuillez entrer une lettre valide.")
+            self.message_to_delete = await self.ctx.send(f"{self.ctx.author.mention} Veuillez entrer une lettre valide.")
             return
 
         self.letters_list.append(letter)

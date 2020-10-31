@@ -2,6 +2,8 @@ from discord.ext import commands
 from googlesearch import search
 from discord import Embed, Colour
 import datetime
+import requests
+from bs4 import BeautifulSoup
 
 
 class Common(commands.Cog):
@@ -39,15 +41,26 @@ class Common(commands.Cog):
     async def google(self, ctx: commands.Context, *request):
         r = " ".join(list(request))
         async with ctx.channel.typing():
-            google = search(r, tld="fr", num=10, stop=10, pause=2, lang="fr")
+            google = search(r, tld="fr", num=10, stop=5, pause=2, lang="fr")
             links = []
             search_embed = Embed(color=Colour.green(), timestamp=datetime.datetime.utcnow())
             search_embed.set_author(name=r.title())
+            titles = []
 
             for link in google:
                 links.append(link)
+                requete = requests.get(link)
+                page = requete.content
+                soup = BeautifulSoup(page)
+                h1 = soup.find("title")
+                h1 = h1.string.strip()
+                titles.append(h1)
 
-            search_embed.add_field(name="Liens", value="\n".join(links))
+            values = []
+            for i in range(len(links)):
+                values.append(f"[{titles[i]}]({links[i]})")
+
+            search_embed.add_field(name="Liens", value="\n".join(values))
 
         await ctx.send(embed=search_embed)
 
@@ -56,6 +69,7 @@ class Common(commands.Cog):
                                   "actuel.\nVous pouvez définir les paramètres d'une invitation habituelle.",
                       usage="<channel(<#0123456789>)> <durée_en_secondes(60)> <nb_max_d'utilisation(15)> <temporaire("
                             "False ou True)> <unique(False ou True)> <raison>")
+    @commands.has_permissions(create_instant_invite=True)
     async def invite(self, ctx: commands.Context, choose_channel=None, max_age: int = 0, max_uses: int = 0,
                      temporary: bool = False,
                      unique: bool = False,

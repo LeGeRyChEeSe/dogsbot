@@ -44,15 +44,15 @@ def drop(connection: sqlite3.Connection, cursor: sqlite3.Cursor, table: str):
 
 
 def select(cursor: sqlite3.Cursor, **kwargs):
-    _select: str = kwargs.get("_select")
+    _select: list = kwargs.get("_select") or "*"
     _from: str = kwargs.get("_from")
     _where: str = kwargs.get("_where")
-    _fetchall: bool = kwargs.get("_fetchall")
+    _fetchall: bool = kwargs.get("_fetchall") or False
 
     if _where:
-        selection = cursor.execute(f"SELECT {_select} FROM {_from} WHERE {_where}")
+        selection = cursor.execute(f"SELECT {','.join(_select)} FROM {_from} WHERE {_where}")
     else:
-        selection = cursor.execute(f"SELECT {_select} FROM {_from}")
+        selection = cursor.execute(f"SELECT {','.join(_select)} FROM {_from}")
 
     if not _fetchall:
         selection = selection.fetchone()
@@ -79,7 +79,7 @@ def insert(connection: sqlite3.Connection, cursor: sqlite3.Cursor, **kwargs):
 
 def delete(connection: sqlite3.Connection, cursor: sqlite3.Cursor, **kwargs):
     _from: str = kwargs.get("_from")
-    _where = kwargs.get("_where")
+    _where: str = kwargs.get("_where")
 
     cursor.execute(f"DELETE FROM {_from} WHERE {_where}")
     print(f"La ligne a bien été supprimée!")

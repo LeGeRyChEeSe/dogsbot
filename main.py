@@ -12,13 +12,18 @@ from events.functions import *
 def get_prefixes(client: commands.Bot, message: discord.Message):
     connection, cursor = db_connect()
 
-    prefix = select(cursor, _select="prefix", _from="prefix", _where=f"guild={message.guild.id}")
+    prefix = select(cursor, _select=["prefix"], _from="prefix", _where=f"guild={message.guild.id}")
 
-    return str(prefix[0])
+    if prefix:
+        return str(prefix[0])
+    else:
+        return "!"
 
+intents = discord.Intents.default()
+intents.members = True
 
 file = "assets/prefixes.json"
-client = commands.Bot(command_prefix=get_prefixes)
+client = commands.Bot(command_prefix=get_prefixes, intents=intents)
 status = cycle(['Status 1', 'Status 2'])
 
 

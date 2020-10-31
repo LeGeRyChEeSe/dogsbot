@@ -1,10 +1,11 @@
 import asyncio
-import json
 from datetime import datetime, timezone
 from traceback import format_exception
 
 import discord
+from discord.colour import Colour
 from discord.ext import commands
+from discord.message import Message
 
 from events.functions import *
 
@@ -13,7 +14,7 @@ jonction = None
 
 class Admin(commands.Cog):
 
-    def __init__(self, client):
+    def __init__(self, client: commands.Bot):
         self.client = client
 
     def not_command(self, message):
@@ -67,7 +68,7 @@ class Admin(commands.Cog):
         channel_id = payload.channel_id
         emoji = payload.emoji.name
 
-        guild = discord.utils.find(
+        guild: discord.Guild = discord.utils.find(
             lambda g: g.id == guild_id, self.client.guilds)
         channel = discord.utils.find(
             lambda g: g.id == channel_id, guild.channels)
@@ -77,18 +78,17 @@ class Admin(commands.Cog):
             reactions = message.reactions
             roles = message.role_mentions
 
-            for embed in message.embeds:
-                for field in embed.fields:
-                    message_reaction = field.name
-                    message_role_id = int(field.value.replace(
-                        "<@&", "").replace(">", ""))
-                    if emoji == message_reaction:
-                        role = discord.utils.get(
-                            guild.roles, id=message_role_id)
-                        member = guild.get_member(user_id)
-                        await member.add_roles(role)
-                        return print(
-                            f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name}!")
+            for field in message.embeds[0].fields:
+                message_reaction = field.name
+                message_role_id = int(field.value.replace(
+                    "<@&", "").replace(">", ""))
+                if emoji == message_reaction:
+                    role = discord.utils.get(
+                        guild.roles, id=message_role_id)
+                    member = guild.get_member(user_id)
+                    await member.add_roles(role)
+                    return print(
+                        f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name} dans le serveur {guild}!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -105,9 +105,6 @@ class Admin(commands.Cog):
         message = await channel.fetch_message(message_id)
 
         if message.author.bot and message.pinned:
-            reactions = message.reactions
-            roles = message.role_mentions
-
             for embed in message.embeds:
                 for field in embed.fields:
                     message_reaction = field.name
@@ -119,7 +116,7 @@ class Admin(commands.Cog):
                         member = guild.get_member(user_id)
                         await member.remove_roles(role)
                         return print(
-                            f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name}!")
+                            f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name} dans le serveur {guild}!")
 
     # Commands
 
@@ -147,19 +144,19 @@ class Admin(commands.Cog):
                 await ctx.message.delete()
 
     @commands.command(name="kick", brief="Expulser un membre du serveur")
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(kick_members=True)
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.send(f"{member.mention} a été expulsé!")
 
     @commands.command(name="ban", brief="Bannir un membre du serveur")
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.send(f"{member.mention} a été banni!")
 
     @commands.command(name="unban", brief="Débannir un membre du serveur")
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, *, member):
         banned_users = await ctx.guild.bans()
         member_name, member_discriminator = member.split('#')
@@ -183,85 +180,116 @@ class Admin(commands.Cog):
     @commands.command(name="changeprefix", brief="Modifier le prefix de commande",
                       description="Modifier le prefix de commande. Par défaut le prefix est !\n\n",
                       usage="<new_prefix>", aliases=["prefix", "pfx"])
-    @commands.check(team_dev)
+    @commands.has_permissions(manage_guild=True)
     async def changeprefix(self, ctx, prefix):
 
         connection, cursor = db_connect()
-
-        def create_table(connection, cursor):
-            cursor.execute("""
-            CREATE TABLE IF NOT EXISTS prefix(
-            id INTEGER PRIMARY KEY UNIQUE,
-            guild TEXT,
-            prefix TEXT
-            )""")
-            connection.commit()
 
         def insert(connection, cursor, guild_id: discord.Guild.id, prefix_user: str):
             try:
                 select(cursor, guild_id)
             except:
-                cursor.execute("INSERT INTO prefix(guild, prefix) VALUES(?,?)", (guild_id, prefix_user))
+                cursor.execute(
+                    "INSERT INTO prefix(guild, prefix) VALUES(?,?)", (guild_id, prefix_user))
             else:
-                cursor.execute("UPDATE prefix SET prefix=? WHERE guild=?", (prefix_user, guild_id))
+                cursor.execute(
+                    "UPDATE prefix SET prefix=? WHERE guild=?", (prefix_user, guild_id))
             connection.commit()
 
-        def delete(connection, cursor, guild_id: discord.Guild.id):
-            try:
-                select(cursor, guild_id)
-            except:
-                pass
-            else:
-                cursor.execute("DELETE FROM prefix WHERE guild=?", (guild_id,))
-                connection.commit()
-
         def select(cursor, guild_id: discord.Guild.id):
-            guild, prefix = cursor.execute("SELECT guild, prefix FROM prefix WHERE guild=?", (guild_id,)).fetchone()
+            guild, prefix = cursor.execute(
+                "SELECT guild, prefix FROM prefix WHERE guild=?", (guild_id,)).fetchone()
             return guild, prefix
 
-        create_table(connection, cursor)
+        create(connection, cursor, "prefix", _names=[
+               "guild", "prefix"], _type=["TEXT", "TEXT"])
         insert(connection, cursor, ctx.guild.id, prefix)
         guild, prefix = select(cursor, ctx.guild.id)
         db_close(connection)
-        return print(guild, prefix)
+        print(guild, prefix)
+        await ctx.send(f"||@everyone|| Le préfix a été changé: `{prefix}`")
 
-        file = ".\\assets\\prefixes.json"
-
-        with open(file, "r") as f:
-            prefixes = json.load(f)
-
-        prefixes[str(ctx.guild.id)] = prefix
-
-        with open(file, "w") as f:
-            json.dump(prefixes, f, indent=4)
-        await ctx.send(f"Le préfix a été changé: `{prefix}`")
-
-    @commands.command(brief="Ajouter des rôles avec des réactions", usage="<reaction1>;<role1>,<reactionN>;<roleN>",
+    @commands.command(brief="Ajouter des rôles avec des réactions", usage="",
                       description="Renvoie un embed contenant l'attribution de chaque réaction à un rôle spécifique. "
-                                  "Ne peut pas contenir une même réaction pour 2 rôles à la fois.")
-    @commands.check(team_dev)
-    async def addroles(self, ctx: commands.Context, *, content):
-        await ctx.message.delete()
-        reactions = list()
-        roles = ctx.message.role_mentions
-        lines = 0
-        content_split = content.split(",")
+                                  "Ne peut pas contenir une même réaction pour 2 rôles à la fois.", aliases=["addr", "ar"])
+    @commands.has_permissions(manage_roles=True)
+    async def addroles(self, ctx: commands.Context):
 
+        receivers = {}
         embed = discord.Embed()
+        embed_sender = discord.Embed()
+        roles = ctx.message
 
-        for i in content_split:
-            both = i.split(";")
-            reactions.append(both[0].strip())
-            embed.add_field(name=reactions[lines],
-                            value=roles[lines].mention, inline=True)
-            lines += 1
+        await ctx.message.delete()
 
-        lines = 0
-        global jonction
-        jonction = dict()
-        for i in reactions:
-            jonction[i] = roles[lines]
-            lines += 1
+        def check_exit(msg: discord.Message):
+            return msg.author.id is ctx.author.id and msg.content == "exit"
+
+        def check_role(msg: discord.Message):
+            return msg.author.id is ctx.author.id and (msg.content.strip().startswith("<@&") and msg.content.strip()
+                                                       .endswith(">")) or (msg.content == "exit")
+
+        def check_emoji(payload: discord.RawReactionActionEvent):
+            return payload.member.id is ctx.author.id and payload.message_id == sender.id
+
+        embed_sender.add_field(name="Tapez `exit`",
+                               value="Pour annuler la commande")
+        embed_sender.set_author(name=ctx.author.display_name,
+                                icon_url=ctx.author.avatar_url)
+
+        embed_sender.colour = Colour.orange()
+        embed_sender.title = ":anger: Rôles :anger:"
+        embed_sender.timestamp = datetime.utcnow()
+        embed_sender.description = "__**Veuillez entrer des rôles séparés d'un espace entre chaque**__ *(Ex: @admin @nitro @helper ...)*"
+        sender = await ctx.send(embed=embed_sender)
+
+        try:
+            roles = await self.client.wait_for("message", check=check_role, timeout=120.0)
+        except asyncio.TimeoutError:
+            embed_sender.colour = Colour.red()
+            embed_sender.title = ":x: Temps expiré :x:"
+            embed_sender.timestamp = datetime.utcnow()
+            embed_sender.description = "Vous avez mis plus de 120 secondes pour me répondre. Commande annulée"
+            embed_sender.clear_fields()
+            return await sender.edit(embed=embed_sender)
+        else:
+            if roles.content.strip().lower() == "exit":
+                return await ctx.send("Commande annulée")
+            await roles.delete()
+
+        for role in roles.role_mentions:
+
+            embed_sender.colour = Colour.green()
+            embed_sender.title = f":white_check_mark: {role.name} :white_check_mark:"
+            embed_sender.description = f"Ajoutez une réaction à ce message pour le rôle **{role.name}**"
+            embed_sender.clear_fields()
+            embed_sender.add_field(name="Rôle", value=role.mention)
+            embed_sender.timestamp = datetime.utcnow()
+            embed_sender.set_footer(
+                text=f"{roles.role_mentions.index(role)}/{len(roles.role_mentions)}")
+            await sender.edit(embed=embed_sender)
+
+            done, pending = await asyncio.wait([self.client.wait_for("message", check=check_exit), self.client.wait_for("raw_reaction_add", check=check_emoji)], return_when=asyncio.FIRST_COMPLETED)
+
+            try:
+                stuff = done.pop().result()
+                print(f"\n\n{stuff}")
+                if isinstance(stuff, discord.Message) and stuff.content == "exit":
+                    return await ctx.send("Commande annulée")
+                else:
+                    receivers[role] = stuff
+            except:
+                return ctx.send("Une erreur s'est produite")
+            for future in done:
+                future.exception()
+            for future in pending:
+                future.cancel()
+
+        await sender.delete()
+
+        for key, value in receivers.items():
+            embed.add_field(name=value.emoji,
+                            value=key.mention, inline=True)
 
         embed.title = "Attribution des Rôles"
         embed.description = "Cliquez sur l'une des réactions à ce message pour obtenir le rôle associé."
@@ -274,10 +302,8 @@ class Admin(commands.Cog):
         await message.pin(reason="Roles Attribution")
         await ctx.channel.purge(limit=1)
 
-        for emoji in reactions:
-            await message.add_reaction(emoji)
-
-        print(jonction)
+        for emoji in receivers.values():
+            await message.add_reaction(emoji.emoji)
 
     @commands.command(aliases=["pairs", "prs", "sp"])
     @commands.check(team_dev)
@@ -356,7 +382,8 @@ class Admin(commands.Cog):
 
                     try:
                         update_choice = await self.client.wait_for("message",
-                                                                   check=self.check_remove_or_update("q", "r", "t"),
+                                                                   check=self.check_remove_or_update(
+                                                                       "q", "r", "t"),
                                                                    timeout=120.0)
                     except asyncio.TimeoutError:
                         db_close(connection)
