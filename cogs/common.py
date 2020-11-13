@@ -1,15 +1,24 @@
+from math import log
+from events.functions import write_file
 from discord.ext import commands
+from discord.ext.commands.errors import CommandInvokeError, MissingRequiredArgument
 from googlesearch import search
 from discord import Embed, Colour
 import datetime
 import requests
 from bs4 import BeautifulSoup
+from googletrans import Translator, LANGUAGES
+
+from events.functions import *
 
 
 class Common(commands.Cog):
     def __init__(self, client):
         commands.Cog.__init__(self)
         self.client = client
+
+    translator = Translator(
+        service_urls=["translate.google.com", "translate.google.fr"])
 
     # Commands
 
@@ -21,7 +30,7 @@ class Common(commands.Cog):
     @commands.command(brief="Envoyer un message", usage="<message>",
                       description=f"Permet d'envoyer un message par l'intermédiaire du bot")
     async def me(self, ctx: commands.Context, *,
-                 message="Veuillez entrer du texte et/ou un fichier/photo pour que je puisse le répéter !"):
+                 message="Veuillez entrer du texte et/ou un(e) fichier/photo pour que je puisse le répéter !"):
         try:
             file = await ctx.message.attachments[0].to_file()
         except IndexError:
@@ -30,6 +39,8 @@ class Common(commands.Cog):
         else:
             await ctx.send(message, file=file)
             await ctx.message.delete()
+        write_file(
+            log_file, f"{ctx.author.display_name}#{ctx.author.discriminator} a écrit quelque chose via le bot dans le serveur {ctx.guild.name}")
 
     @commands.command(name="ping", brief="Bot latency",
                       description="Réponds par 'Pong!' en indiquant la latence du bot.")
@@ -39,11 +50,15 @@ class Common(commands.Cog):
     @commands.command(name="google", brief="Recherches Googles",
                       description="Obtenez des réponses à vos recherches google!", usage="<recherche>")
     async def google(self, ctx: commands.Context, *request):
+        if not request:
+            raise MissingRequiredArgument()
+
         r = " ".join(list(request))
         async with ctx.channel.typing():
             google = search(r, tld="fr", num=10, stop=5, pause=2, lang="fr")
             links = []
-            search_embed = Embed(color=Colour.green(), timestamp=datetime.datetime.utcnow())
+            search_embed = Embed(color=Colour.green(),
+                                 timestamp=datetime.datetime.utcnow())
             search_embed.set_author(name=r.title())
             titles = []
 
@@ -82,6 +97,25 @@ class Common(commands.Cog):
         invite = await channel.create_invite(max_age=max_age, max_uses=max_uses, temporary=temporary,
                                              unique=unique, reason=" ".join(list(reason)))
         await ctx.send(invite)
+        write_file(
+            log_file, f"{ctx.author.display_name}#{ctx.author.discriminator} a créé un lien d'invitation dans le serveur {ctx.guild.name}(canal: {choose_channel})")
+
+    @commands.command(name="translate", aliases=["tr", "googletr", "traduction", "googletranslate", "googletraduction"])
+    async def translate(self, ctx: commands.Context, *, content: str):
+        await ctx.message.delete()
+
+        try:
+            language = self.translator.detect(content)
+        except AttributeError as err:
+            write_file(log_file, err)
+            return await ctx.send("Service de traduction indisponible.")
+
+        if language.lang == "fr":
+            return await ctx.send(f"> {LANGUAGES[language.lang].title()}: `{content}`\n{LANGUAGES['en'].title()}: `{self.translator.translate(content, dest='en').text}`")
+        elif language.lang == "en":
+            return await ctx.send(f"> {LANGUAGES[language.lang].title()}: `{content}`\n{LANGUAGES['fr'].title()}: `{self.translator.translate(content, dest='fr').text}`")
+        else:
+            return await ctx.send(f"> {LANGUAGES[language.lang].title()}: `{content}`\n{LANGUAGES['fr'].title()}: `{self.translator.translate(content, dest='fr').text}`")
 
 
 def setup(client):

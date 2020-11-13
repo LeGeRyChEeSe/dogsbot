@@ -1,5 +1,6 @@
 import asyncio
 import os
+from sqlite3.dbapi2 import Error
 import traceback
 from itertools import cycle
 
@@ -12,17 +13,17 @@ from events.functions import *
 def get_prefixes(client: commands.Bot, message: discord.Message):
     connection, cursor = db_connect()
 
-    prefix = select(cursor, _select=["prefix"], _from="prefix", _where=f"guild={message.guild.id}")
+    prefix = select(cursor, _select=[
+                    "prefix"], _from="prefix", _where=f"guild={message.guild.id}")
 
     if prefix:
         return str(prefix[0])
     else:
         return "!"
 
+
 intents = discord.Intents.default()
 intents.members = True
-
-file = "assets/prefixes.json"
 client = commands.Bot(command_prefix=get_prefixes, intents=intents)
 status = cycle(['Status 1', 'Status 2'])
 
@@ -43,36 +44,43 @@ async def on_ready():
         connection.commit()
     connection.close()
     print("Le bot est prêt.")
+    write_file(log_file, "Le bot est prêt.")
 
 
 @client.event
 async def on_member_join(member: discord.Member):
-    print(f"{member} a rejoint le serveur {member.guild.name}!")
+    write_file(log_file, f"{member} a rejoint le serveur {member.guild.name}!")
 
 
 @client.event
 async def on_member_remove(member: discord.Member):
-    print(f'{member} a quitté le serveur {member.guild.name}!')
+    write_file(log_file, f'{member} a quitté le serveur {member.guild.name}!')
 
 
 @client.event
 async def on_guild_join(guild: discord.Guild):
     connection, cursor = db_connect()
-    insert(connection, cursor, _into="prefix", _names=["guild", "prefix"], _values=[guild.id, "!"])
+    insert(connection, cursor, _into="prefix", _names=[
+           "guild", "prefix"], _values=[guild.id, "!"])
     db_close(connection)
+    write_file(log_file, f"{guild.name} rejoint")
 
 
 @client.event
 async def on_guild_remove(guild: discord.Guild):
     connection, cursor = db_connect()
     delete(connection, cursor, _from="prefix", _where=f"guild={guild.id}")
+    write_file(log_file, f"{guild.name} quitté")
 
 
 # Commands Error
 
 
 @client.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: commands.Context, error: Error):
+    write_file(
+        log_file, f"'{error}' on server {ctx.guild.name}(channel: {ctx.channel.name})")
+
     def check_author(reaction):
         return reaction.user_id == ctx.author.id and reaction.emoji.name == "\U0001f197"
 
@@ -108,6 +116,9 @@ async def load(ctx, extension):
 
     except discord.DiscordException as err:
         return await ctx.send(err)
+    else:
+        write_file(
+            log_file, f"Chargement de la catégorie {extension} terminée.")
 
 
 @client.command(aliases=["ul"])
@@ -118,6 +129,9 @@ async def unload(ctx, extension):
 
     except discord.DiscordException as err:
         return await ctx.send(err)
+    else:
+        write_file(
+            log_file, f"Déchargement de la catégorie {extension} terminée.")
 
 
 @client.command(aliases=["rl"])

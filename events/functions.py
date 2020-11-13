@@ -1,8 +1,10 @@
 import sqlite3
+from datetime import datetime
 
 from typing import List
 
 db_path = "./assets/Data/pairs.db"
+log_file = "dogsbot.log"
 
 
 def db_connect(db=db_path):
@@ -50,7 +52,8 @@ def select(cursor: sqlite3.Cursor, **kwargs):
     _fetchall: bool = kwargs.get("_fetchall") or False
 
     if _where:
-        selection = cursor.execute(f"SELECT {','.join(_select)} FROM {_from} WHERE {_where}")
+        selection = cursor.execute(
+            f"SELECT {','.join(_select)} FROM {_from} WHERE {_where}")
     else:
         selection = cursor.execute(f"SELECT {','.join(_select)} FROM {_from}")
 
@@ -72,7 +75,8 @@ def insert(connection: sqlite3.Connection, cursor: sqlite3.Cursor, **kwargs):
     print(','.join(_names))
     print(','.join(_values))
 
-    cursor.execute(f"INSERT INTO {_into}({','.join(_names)}) VALUES({','.join(_values)})")
+    cursor.execute(
+        f"INSERT INTO {_into}({','.join(_names)}) VALUES({','.join(_values)})")
     connection.commit()
     print(f"Les données ont bien été insérées dans la table {_into}!")
 
@@ -84,3 +88,23 @@ def delete(connection: sqlite3.Connection, cursor: sqlite3.Cursor, **kwargs):
     cursor.execute(f"DELETE FROM {_from} WHERE {_where}")
     print(f"La ligne a bien été supprimée!")
     connection.commit()
+
+
+def _test_file(file: str):
+    try:
+        open(file, "x").close()
+    except FileExistsError:
+        return True
+
+
+def write_file(file: str, content: str, mode="a"):
+    _test_file(file)
+    with open(file, mode, encoding="utf-8") as the_file:
+        the_file.write(f"{datetime.utcnow()} | ")
+        the_file.write(content + " | \n")
+
+
+def read_file(file: str, mode="r"):
+    _test_file(file)
+    with open(file, mode, encoding="utf-8") as the_file:
+        return the_file.read()

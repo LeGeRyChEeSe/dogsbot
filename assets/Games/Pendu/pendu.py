@@ -19,13 +19,13 @@ class Pendu:
         self.is_over = False
         self.connection = connection
         self.cursor = cursor
-        self.taille_mot = 8
+        self.taille_mot = 25
         self.mot = word_init(self.connection, self.cursor, self.taille_mot)
         self.letters_list = []
         self.user_chances = 0
         self.word_hidden = self.set_word_hidden()
         self.message_to_delete = None
-        self.chances = len(self.mot)
+        self.chances = 8
 
     async def is_find_or_over(self):
         if not "_" in self.word_hidden:
@@ -71,8 +71,10 @@ class Pendu:
             word_hidden_split.append(i)
         word_hidden_with_spaces = " ".join(word_hidden_split)
         embed.set_author(name=word_hidden_with_spaces.upper())
-        embed.add_field(name="Chances restantes", value=str(self.chances - self.user_chances), inline=True)
-        embed.add_field(name="Lettres utilisées", value=str(", ".join(self.letters_list)).upper(), inline=False)
+        embed.add_field(name="Chances restantes", value=str(
+            self.chances - self.user_chances), inline=True)
+        embed.add_field(name="Lettres utilisées", value=str(
+            ", ".join(self.letters_list)).upper(), inline=False)
         embed.set_thumbnail(url=self.ctx.author.avatar_url)
         embed.set_footer(text=self.ctx.author.name)
         embed.timestamp = datetime.datetime.utcnow()

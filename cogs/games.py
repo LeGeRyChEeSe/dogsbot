@@ -63,15 +63,18 @@ class Games(commands.Cog):
 
         # Condition pour éviter de lancer plusieurs fils de discussion avec le chatbot
         connection, cursor = db_connect()
-        create(connection, cursor, "chat_table", _names=["user"], _type=["INT"])
-        user = select(cursor, _select=["user"], _from="chat_table", _where=f"user={str(ctx.author.id)}")
+        create(connection, cursor, "chat_table",
+               _names=["user"], _type=["INT"])
+        user = select(cursor, _select=[
+                      "user"], _from="chat_table", _where=f"user={str(ctx.author.id)}")
 
         if user:
             return await ctx.send(f"Je suis déjà à votre écoute {ctx.author.mention} dans un autre canal!")
 
         # Définition de la base de données pour le chatbot
 
-        selection = select(cursor, _select=["questions", "responses"], _from="pairs", _fetchall=True)
+        selection = select(
+            cursor, _select=["questions", "responses"], _from="pairs", _fetchall=True)
         pairs = []
         for pair in selection:
             element = [pair[0]]
@@ -82,7 +85,8 @@ class Games(commands.Cog):
             pairs.append(element)
 
         chat = Chat(pairs)
-        insert(connection, cursor, _into="chat_table", _names=["user"], _values=[str(ctx.author.id)])
+        insert(connection, cursor, _into="chat_table",
+               _names=["user"], _values=[str(ctx.author.id)])
 
         while _input_ != "exit":
 
@@ -101,7 +105,8 @@ class Games(commands.Cog):
                     try:
                         msg_to_confirm = await self.client.wait_for("message", check=self.check_confirm, timeout=120.0)
                     except asyncio.TimeoutError:
-                        delete(connection, cursor, _from="chat_table", _where=f"user={str(ctx.author.id)}")
+                        delete(connection, cursor, _from="chat_table",
+                               _where=f"user={str(ctx.author.id)}")
                         db_close(connection)
                         return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
                     else:
@@ -113,7 +118,8 @@ class Games(commands.Cog):
                             if msg_to_edit.content == "exit":
                                 await ctx.send("On verra donc une prochaine fois!")
                             else:
-                                insert(connection, cursor, _into="pairs", _names=["questions", "responses"], _values=[_input_, msg_to_edit.content])
+                                insert(connection, cursor, _into="pairs", _names=[
+                                       "questions", "responses"], _values=[_input_, msg_to_edit.content])
                                 await ctx.send(
                                     f"Les réponses suivantes ont été ajouté au(x) message(s) *\"{_input_}\"*:\n{str(msg_to_edit.content.split('|'))}")
                         elif msg_to_confirm.content == "non":
@@ -125,7 +131,8 @@ class Games(commands.Cog):
             try:
                 _input_ = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
             except asyncio.TimeoutError:
-                delete(connection, cursor, _from="chat_table", _where=f"user={str(ctx.author.id)}")
+                delete(connection, cursor, _from="chat_table",
+                       _where=f"user={str(ctx.author.id)}")
                 connection.commit()
                 db_close(connection)
                 return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
@@ -133,7 +140,8 @@ class Games(commands.Cog):
                 _input_ = _input_.content
 
         await ctx.send(f"Merci {ctx.author.name}, à bientôt!")
-        delete(connection, cursor, _from="chat_table", _where=f"user={str(ctx.author.id)}")
+        delete(connection, cursor, _from="chat_table",
+               _where=f"user={str(ctx.author.id)}")
         db_close(connection)
 
     @commands.command(hidden=True, name="dragonball", aliases=["db", "dragon"])
@@ -142,37 +150,104 @@ class Games(commands.Cog):
 
     @commands.command(name="pendu", brief="Jouez au pendu!",
                       description="""Règles:
-                      - Vous avez autant de chances que le nombre de lettre dans le mot pour découvrir ce mot pioché aléatoirement!
+                      - Vous avez 8 chances pour trouver un mot pioché aléatoirement!
                       - Après avoir écrit la commande, tapez simplement la lettre que vous pensez qui est dans le mot.
                       - Pour quitter le jeu, écrivez simplement 'exit'.
                       
                       - Optionnel:
-                        - Vous pouvez ajouter un mot de votre choix (maximum 25 lettres dans un mot et sans espaces) 
-                          avec la syntaxe 'pendu add <nouveau_mot>'.
-                        - Vous pouvez choisir la taille max du mot à deviner avec la syntaxe 
-                          'pendu taille <nombre_entre_3_et_25_inclus>'""",
-                      usage='[add <nouveau_mot> | taille <nombre_entre_3_et_25_inclus>]')
-    async def pendu(self, ctx, *add_word):
-        await ctx.message.delete()
+                        - Vous pouvez ajouter plusieurs mots de votre choix (maximum 25 lettres dans un mot et sans espaces) avec la syntaxe 'pendu add <nouveau_mot_1> <nouveau_mot_2> <nouveau_mot_n> etc.'.
+                        - Vous pouvez choisir la taille max du mot à deviner avec la syntaxe 'pendu taille <nombre_entre_3_et_25_inclus>'""",
+                      usage='[add <nouveau_mot> | <nouveau_mot_1> <nouveau_mot_2> ... | taille <nombre_entre_3_et_25_inclus>]')
+    async def pendu(self, ctx: commands.Context, *add_word):
+        async with ctx.channel.typing():
+            await ctx.message.delete()
 
-        from assets.Games.Pendu.fonctions import insert_into_pendu
+            from assets.Games.Pendu.fonctions import insert_into_pendu
 
-        connection, cursor = db_connect()
+            connection, cursor = db_connect()
 
-        if len(add_word) > 0:
-            if add_word[0] == "add":
-                if insert_into_pendu(connection, cursor, add_word[1].lower()):
-                    await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` a bien été ajouté parmis tous les autres mots!")
-                else:
-                    await ctx.send(f"{ctx.author.mention} Le mot {add_word[1]} existe déjà dans ma base de données!")
-                return db_close(connection)
-            elif add_word[0] == "del" and ctx.channel.permissions_for(ctx.author).administrator:
-                if delete_from_pendu(connection, cursor, add_word[1].lower()):
-                    await ctx.send(f"{ctx.author.mention} Le mot {add_word[1]} a bien été supprimé!")
+            if len(add_word) > 0:
+                if add_word[0] == "add" and len(add_word) == 2:
+                    if insert_into_pendu(connection, cursor, add_word[1].lower()):
+                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` a bien été ajoutés parmis tous les autres mots!")
+                        write_file(
+                            log_file, f"{ctx.author.name}#{ctx.author.discriminator} a ajouté le mot {add_word[1]} dans la table pendu")
+
+                    else:
+                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` existe déjà dans ma base de données!")
+
                     return db_close(connection)
-                else:
-                    await ctx.send(
-                        f"Le mot {add_word[1]} n'est pas présent dans ma base de données, je ne peux donc pas le supprimer!")
+
+                elif add_word[0] == "add" and len(add_word) > 2:
+                    words = []
+                    words_already = []
+
+                    for word in add_word[1:]:
+                        if insert_into_pendu(connection, cursor, word.lower()):
+                            words.append(f"`{word}`")
+
+                        else:
+                            words_already.append(f"`{word}`")
+
+                    if words_already:
+                        if len(words_already) == 1:
+                            await ctx.send(f"{ctx.author.mention} Le mot {words_already[0]} existe déjà dans ma base de données!")
+
+                        else:
+                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words_already[0:-1])} et {words_already[-1]} existent déjà dans ma base de données!")
+
+                    if words:
+                        if len(words) == 1:
+                            await ctx.send(f"{ctx.author.mention} Le mot {words[0]} a bien été ajouté parmis tous les autres mots!")
+
+                        else:
+                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words[:-1])} et {words[-1]} ont bien été ajoutés parmis tous les autres mots!")
+
+                        write_file(
+                            log_file, f"{ctx.author.name}#{ctx.author.discriminator} a ajouté les mots {words} dans la table pendu")
+
+                    return db_close(connection)
+
+                elif add_word[0] == "del" and len(add_word) == 2 and ctx.channel.permissions_for(ctx.author).administrator:
+                    if delete_from_pendu(connection, cursor, add_word[1].lower()):
+                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` a bien été supprimé!")
+                        write_file(
+                            log_file, f"{ctx.author.name}#{ctx.author.discriminator} a retiré le mot {add_word[1]} dans la table pendu")
+
+                    else:
+                        await ctx.send(
+                            f"{ctx.author.mention} Le mot {add_word[1]} n'existe pas dans ma base de données! Je ne peux donc pas le supprimer!")
+
+                    return db_close(connection)
+
+                elif add_word[0] == "del" and len(add_word) > 2 and ctx.channel.permissions_for(ctx.author).administrator:
+                    words = []
+                    words_not_exists = []
+
+                    for word in add_word[1:]:
+                        if delete_from_pendu(connection, cursor, word.lower()):
+                            words.append(f"`{word}`")
+
+                        else:
+                            words_not_exists.append(f"`{word}`")
+
+                    if words_not_exists:
+                        if len(words_not_exists) == 1:
+                            await ctx.send(f"{ctx.author.mention} Le mot {words_not_exists[0]} n'existe pas dans ma base de données! Je ne peux donc pas le supprimer!")
+
+                        else:
+                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words_not_exists[0:-1])} et {words_not_exists[-1]} n'existent pas dans ma base de données! Je ne peux donc pas les supprimer!")
+
+                    if words:
+                        if len(words) == 1:
+                            await ctx.send(f"{ctx.author.mention} Le mot {words[0]} a bien été supprimé de la liste des mots!")
+
+                        else:
+                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words[:-1])} et {words[-1]} ont bien été supprimés de la liste des mots!")
+
+                        write_file(
+                            log_file, f"{ctx.author.name}#{ctx.author.discriminator} a ajouté les mots {words} dans la table pendu")
+
                     return db_close(connection)
 
         set_pendu(self, ctx, connection, cursor)
@@ -183,8 +258,10 @@ class Games(commands.Cog):
             if add_word[0] == "taille" and int(add_word[1]) in range(3, 26, 1):
                 user_pendu.taille_mot = int(add_word[1])
                 set_taille_message = await ctx.send(f"{ctx.author.mention}Taille choisie: {int(add_word[1])}")
-                user_pendu.mot = word_init(connection, cursor, user_pendu.taille_mot)
+                user_pendu.mot = word_init(
+                    connection, cursor, user_pendu.taille_mot)
                 user_pendu.chances = len(user_pendu.mot)
+
             elif add_word[0] == "taille" and not int(add_word[1]) in range(3, 26, 1):
                 set_taille_message = await ctx.send(
                     f"""{ctx.author.mention}`Taille invalide` (doit se situer entre 3 et 25)\nTaille du mot par défaut: `8`""")
@@ -196,13 +273,16 @@ class Games(commands.Cog):
 
             try:
                 lettre = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+
             except asyncio.TimeoutError:
                 await ctx.send(f"{ctx.author.mention} Temps écoulé!")
                 break
+
             else:
                 if set_taille_message:
                     await set_taille_message.delete()
                     set_taille_message = None
+
                 if lettre.content == "exit":
                     await user_pendu.message_to_delete.delete()
                     await lettre.delete()
@@ -217,19 +297,23 @@ class Games(commands.Cog):
             if user_pendu.is_find or user_pendu.is_over:
                 try:
                     user_quit = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+
                 except asyncio.TimeoutError:
                     await ctx.send(f"{ctx.author.mention} Temps écoulé!")
                     break
 
                 retry = await user_pendu.retry(user_quit.content.lower())
+
                 if retry == "o":
                     await user_pendu.message_to_delete.delete()
                     await user_quit.delete()
                     user_pendu.__init__(ctx, connection, cursor)
                     user_pendu.user_chances = 0
+
                     if len(add_word) > 0:
                         if add_word[0] == "taille" and int(add_word[1]) in range(3, 26, 1):
                             user_pendu.taille_mot = int(add_word[1])
+
                 elif retry == "n":
                     await user_pendu.message_to_delete.delete()
                     await user_quit.delete()

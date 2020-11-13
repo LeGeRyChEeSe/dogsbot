@@ -9,8 +9,6 @@ from discord.message import Message
 
 from events.functions import *
 
-jonction = None
-
 
 class Admin(commands.Cog):
 
@@ -56,6 +54,9 @@ class Admin(commands.Cog):
             else:
                 return False
 
+    def team_dev(ctx: commands.Context):
+        return ctx.author.id == 440141443877830656
+
     # Events
 
     @commands.Cog.listener()
@@ -66,7 +67,7 @@ class Admin(commands.Cog):
         message_id = payload.message_id
         guild_id = payload.guild_id
         channel_id = payload.channel_id
-        emoji = payload.emoji.name
+        emoji = payload.emoji
 
         guild: discord.Guild = discord.utils.find(
             lambda g: g.id == guild_id, self.client.guilds)
@@ -75,20 +76,19 @@ class Admin(commands.Cog):
         message = await channel.fetch_message(message_id)
 
         if message.author.bot and message.pinned:
-            reactions = message.reactions
-            roles = message.role_mentions
 
             for field in message.embeds[0].fields:
                 message_reaction = field.name
                 message_role_id = int(field.value.replace(
                     "<@&", "").replace(">", ""))
-                if emoji == message_reaction:
+                if str(emoji) == str(message_reaction) or emoji.name == message_reaction:
                     role = discord.utils.get(
                         guild.roles, id=message_role_id)
                     member = guild.get_member(user_id)
                     await member.add_roles(role)
-                    return print(
-                        f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name} dans le serveur {guild}!")
+                    write_file(
+                        log_file, f"{member.display_name}#{member.discriminator} s'est attribué le rôle {role.name} dans le serveur {guild}")
+                    return
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -96,7 +96,7 @@ class Admin(commands.Cog):
         message_id = payload.message_id
         guild_id = payload.guild_id
         channel_id = payload.channel_id
-        emoji = payload.emoji.name
+        emoji = payload.emoji
 
         guild = discord.utils.find(
             lambda g: g.id == guild_id, self.client.guilds)
@@ -110,13 +110,14 @@ class Admin(commands.Cog):
                     message_reaction = field.name
                     message_role_id = int(field.value.replace(
                         "<@&", "").replace(">", ""))
-                    if emoji == message_reaction:
+                    if str(emoji) == str(message_reaction) or emoji.name == message_reaction:
                         role = discord.utils.get(
                             guild.roles, id=message_role_id)
                         member = guild.get_member(user_id)
                         await member.remove_roles(role)
-                        return print(
-                            f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name} dans le serveur {guild}!")
+                        write_file(
+                            log_file, f"{member.display_name}#{member.discriminator} s'est destitué du rôle {role.name} dans le serveur {guild}")
+                        return
 
     # Commands
 
@@ -136,8 +137,8 @@ class Admin(commands.Cog):
         else:
             if message.content == "o":
                 await ctx.channel.purge(limit=amount + 3)
-                print(
-                    f"{ctx.author.display_name} a effacé {amount} messages du salon {ctx.channel.name} dans le serveur {ctx.guild.name}. Date: {datetime.utcnow()}")
+                write_file(
+                    log_file, f"{ctx.author.display_name} a effacé {amount} messages du salon {ctx.channel.name} dans le serveur {ctx.guild.name}")
             else:
                 await sure.delete()
                 await message.delete()
@@ -148,16 +149,20 @@ class Admin(commands.Cog):
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.send(f"{member.mention} a été expulsé!")
+        write_file(
+            log_file, f"L'utilisateur {member.display_name}#{member.discriminator} a été expulsé par {ctx.author.name} du serveur {ctx.guild.name}")
 
     @commands.command(name="ban", brief="Bannir un membre du serveur")
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.send(f"{member.mention} a été banni!")
+        write_file(
+            log_file, f"L'utilisateur {member.display_name}#{member.discriminator} a été banni par {ctx.author.name} du serveur {ctx.guild.name} pour la raison suivante: {reason}")
 
     @commands.command(name="unban", brief="Débannir un membre du serveur")
     @commands.has_permissions(ban_members=True)
-    async def unban(self, ctx, *, member):
+    async def unban(self, ctx: commands.Context, *, member):
         banned_users = await ctx.guild.bans()
         member_name, member_discriminator = member.split('#')
 
@@ -165,12 +170,11 @@ class Admin(commands.Cog):
             user = ban_entry.user
             if (user.name, user.discriminator) == (member_name, member_discriminator):
                 await ctx.guild.unban(user)
+                write_file(
+                    log_file, f"{user.name}#{user.discriminator} a été débanni du serveur {ctx.guild.name}")
                 return await ctx.send(f"{user.name}#{user.discriminator} a été débanni!")
 
         await ctx.send(f"{member_name}#{member_discriminator} n'est pas un utilisateur banni du serveur.")
-
-    def team_dev(ctx: commands.Context):
-        return ctx.author.id == 440141443877830656
 
     @commands.command(hidden=True)
     @commands.check(team_dev)
@@ -206,8 +210,9 @@ class Admin(commands.Cog):
         insert(connection, cursor, ctx.guild.id, prefix)
         guild, prefix = select(cursor, ctx.guild.id)
         db_close(connection)
-        print(guild, prefix)
         await ctx.send(f"||@everyone|| Le préfix a été changé: `{prefix}`")
+        write_file(
+            log_file, f"Nouveau prefix '{prefix}' pour le serveur {guild}")
 
     @commands.command(brief="Ajouter des rôles avec des réactions", usage="",
                       description="Renvoie un embed contenant l'attribution de chaque réaction à un rôle spécifique. "
@@ -508,18 +513,40 @@ class Admin(commands.Cog):
         await ctx.send(str(selection))
         db_close(connection)
 
-    @bot.error
+    @ commands.command()
+    @ commands.check(team_dev)
+    async def eval(self, ctx: commands.Context):
+        try:
+            message_to_execute = await self.client.wait_for("message", check=self.check_author, timeout=300)
+        except TimeoutError:
+            return
+        message_executed = eval(message_to_execute.content)
+        await message_to_execute.delete()
+        await ctx.send(f"> {message_to_execute.content}\n{message_executed}")
+
+    @ commands.command(name="log", aliases=["logs"])
+    @ commands.has_permissions(administrator=True)
+    async def log(self, ctx: commands.Context):
+        async with ctx.channel.typing():
+            _log_file = discord.File(
+                "dogsbot.log", filename=f"logs_{ctx.author.id}_{datetime.utcnow()}.log")
+            await ctx.author.send(file=_log_file)
+            await ctx.send(f"Regarde tes MP {ctx.author.mention}!")
+            write_file(
+                log_file, f"Fichier de log '{_log_file.filename}' généré par {ctx.author.display_name}#{ctx.author.discriminator} dans le serveur {ctx.guild.name}(id: {ctx.guild.id})")
+
+    @ bot.error
     async def bot_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             await ctx.send("Vous n'êtes pas <@!440141443877830656>!")
 
-    @unban.error
+    @ unban.error
     async def unban_error(self, ctx, error):
         if ValueError(error):
             print(error)
             await ctx.send("L'utilisateur doit être écrit de la forme `nom#XXXX`.")
 
-    @update_pairs.error
+    @ update_pairs.error
     async def update_pairs_error(self, ctx, error):
         etype = type(error)
         trace = error.__traceback__
