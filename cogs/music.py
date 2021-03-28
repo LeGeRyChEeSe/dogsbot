@@ -12,7 +12,7 @@ class Music(commands.Cog):
         self.client = client
 
     # Commands
-    @commands.command()
+    @commands.command(hidden=True)
     async def join(self, ctx):
         client = self.client
         global voice
@@ -25,7 +25,7 @@ class Music(commands.Cog):
             voice = await channel.connect()
         await ctx.send(f"J'ai rejoins le canal {channel}!")
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def leave(self, ctx):
         client = self.client
         channel = ctx.author.voice.channel
@@ -35,7 +35,7 @@ class Music(commands.Cog):
             await voice.disconnect()
             await ctx.send(f"J'ai quitté le canal {channel}!")
 
-    @commands.command(aliases=["p", "pl", "pla"])
+    @commands.command(aliases=["p", "pl", "pla"], hidden=True)
     async def play(self, ctx, url: str):
         client = self.client
 

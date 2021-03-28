@@ -1,4 +1,7 @@
 {
   "python.pythonPath": "C:\\Users\\kilia\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
-  "python.linter": "pyLint"
+  "python.linter": "pyLint",
+  "files.autoSave": "afterDelay",
+  "python.autoComplete.addBrackets": true,
+  "python.disableInstallationCheck": true
 }

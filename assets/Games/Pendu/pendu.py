@@ -20,12 +20,15 @@ class Pendu:
         self.connection = connection
         self.cursor = cursor
         self.taille_mot = 25
-        self.mot = word_init(self.connection, self.cursor, self.taille_mot)
+        self.mot = ""
         self.letters_list = []
         self.user_chances = 0
         self.word_hidden = self.set_word_hidden()
         self.message_to_delete = None
         self.chances = 8
+
+    async def set_mot(self):
+        self.mot = await word_init(self.connection, self.cursor, self.taille_mot)
 
     async def is_find_or_over(self):
         if not "_" in self.word_hidden:
@@ -88,7 +91,7 @@ class Pendu:
 
         self.letters_list.append(letter)
 
-        self.word_hidden, self.user_chances = await user_choice(self)
+        self.word_hidden, self.user_chances = user_choice(self)
 
         if not await self.is_find_or_over():
             embed = self.set_embed()
