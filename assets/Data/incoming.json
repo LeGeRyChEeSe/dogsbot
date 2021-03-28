@@ -1,0 +1,25 @@
+{
+    "Bient\u00f4t": {
+        "Syst\u00e8me": [
+            "Classement des joueurs en fonction de leur score dans chaque jeu",
+            "Lock des salons"
+        ],
+        "Jeux": [
+            "\u00c9checs",
+            "D\u00e9mineur",
+            "Dragon Grall",
+            "Jeu de cartes"
+        ]
+    },
+    "Suggestions": {
+        "531545568217137163": [
+            "**Stain#4449** sugg\u00e8re: *Ajout de jeux pour le Sysmodule `sys-screenuploader` afin d'envoyer nos screens dans les bons salons.*"
+        ],
+        "748856777105211423": [
+            "**Stain#4449** sugg\u00e8re: *de bouger ton cul gros lard.*"
+        ],
+        "819368911996715048": [
+            "**Medix#5830** sugg\u00e8re: *ajouter les r\u00e8gles pour les tournois et rappeler la commande pour le score dans le message priv\u00e9 par le bot.*"
+        ]
+    }
+}
