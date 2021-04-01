@@ -2,15 +2,12 @@ import asyncio
 import os
 import traceback
 from itertools import cycle
-from dotenv import load_dotenv
 from math import floor
 
 import discord
 from discord.ext import commands
 
 from events.functions import *
-
-load_dotenv()
 
 
 async def get_prefixes(client: commands.Bot, message: discord.Message):
@@ -198,4 +195,4 @@ for filename in os.listdir('./cogs/'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
-client.run(os.getenv("TOKEN"))
+client.run("NzQ4Njg5MDc1ODU4NDQwMzQz.X0hFCQ.4T_UE1BeM2UgVpTXZg7lTstdhsY")
