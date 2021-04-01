@@ -2054,3 +2054,53 @@ In embed.fields.1.value: This field is required' dans le serveur Dogsbot Debug p
 2021-03-27 21:38:51.813570 | La table tournament_participants a été créée! | 
 2021-03-27 21:38:51.813570 | La table authorized_starters a été créée! | 
 2021-03-28 05:01:24.065652 | Le bot est prêt. | 
+2021-03-28 21:17:01.979344 | Le bot est prêt. | 
+2021-03-29 17:38:27.164897 | Le bot est prêt. | 
+2021-03-30 13:24:51.743396 | 'Command raised an exception: NotFound: 404 Not Found (error code: 10008): Unknown Message' dans le serveur 𝕮4𝖙𝖘 𝕽𝖔𝖌 𝕮𝖞𝖓𝖊𝖙𝖎𝖈 par 😻 𝓢 𝓵 4 𝓹'#5764(id: 612146531432136724)(channel: 💫-𝓜4𝓙𝓞𝓡𝓢-💫) | 
+2021-03-31 07:45:42.342745 | 'You are missing Manage Server permission(s) to run this command.' dans le serveur Team All 4 One par Stain#4449(id: 440141443877830656)(channel: 𝑇𝑒𝑛𝐾𝑎𝑖𝑠ℎ𝑖) | 
+2021-03-31 07:46:08.242307 | 'prefix is a required argument that is missing.' dans le serveur Team All 4 One par Løű-Wīčķ 亀#0986(id: 374125030767984642)(channel: 𝑇𝑒𝑛𝐾𝑎𝑖𝑠ℎ𝑖) | 
+2021-03-31 07:46:39.616143 | 'Command raised an exception: TypeError: cannot unpack non-iterable Cursor object' dans le serveur Team All 4 One par Stain#4449(id: 440141443877830656)(channel: 𝑇𝑒𝑛𝐾𝑎𝑖𝑠ℎ𝑖) | 
+2021-03-31 13:22:12.611777 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:22:13.311577 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:22:14.255960 | 'id is a required argument that is missing.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:22:28.464652 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:22:28.848169 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:22:29.950147 | 'Command raised an exception: FileNotFoundError: [Errno 2] No such file or directory: '/assets/Images/trou_noir.jpg'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:22:39.471615 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:22:44.139547 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:34:14.132309 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:34:14.396579 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:37:42.125416 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:37:42.349506 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:37:43.002977 | 'Command raised an exception: AttributeError: 'PSDraw' object has no attribute 'isofont'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:38:55.163925 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:38:55.402960 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:38:56.084470 | 'Command raised an exception: TypeError: setfont() missing 1 required positional argument: 'font'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:39:06.276653 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:39:06.523561 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:39:07.413848 | 'Command raised an exception: AttributeError: 'PSDraw' object has no attribute 'isofont'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:41:43.770843 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:41:43.989228 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:41:44.691114 | 'Command raised an exception: AttributeError: 'JpegImageFile' object has no attribute 'write'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:44:50.883461 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:44:51.092207 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:44:51.873120 | 'Command raised an exception: UnsupportedOperation: write' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:45:31.898964 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:45:32.264759 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:45:32.945742 | 'Command raised an exception: AttributeError: '_io.BufferedWriter' object has no attribute 'show'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:45:54.922249 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:45:55.169051 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:45:55.759813 | 'Command raised an exception: ValueError: must have exactly one of create/read/write/append mode' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 13:46:18.400644 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 13:46:18.626544 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 13:46:19.304415 | 'Command raised an exception: AttributeError: '_io.BufferedWriter' object has no attribute 'show'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 14:01:35.327853 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 14:01:35.542424 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 14:06:50.640977 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 14:06:50.854781 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 14:06:54.874906 | 'Command raised an exception: InvalidArgument: format must be None or one of frozenset({'png', 'jpg', 'webp', 'gif', 'jpeg'})' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-03-31 14:07:14.375377 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 14:07:14.737376 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 14:16:08.509937 | Déchargement de la catégorie admin par Stain#4449terminée. | 
+2021-03-31 14:16:08.750786 | Chargement de la catégorie admin par Stain#4449 terminée. | 
+2021-03-31 20:38:04.221006 | Le bot est prêt. | 

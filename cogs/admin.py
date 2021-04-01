@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime, timezone
 from traceback import format_exception
+from PIL import Image, ImageFont, ImageDraw
+from io import BytesIO
 
 import discord
 from discord.colour import Colour
@@ -821,11 +823,24 @@ class Admin(commands.Cog):
 
     @commands.command(name="test", hidden=True)
     @commands.check(team_dev)
-    async def test(self, ctx: commands.Context, id):
-        connection, cursor = await db_connect()
-        await cursor.execute("UPDATE tournaments SET start = 0 WHERE id_tournament = ? AND guild_id = ?", (id, ctx.guild.id))
-        await connection.commit()
-        await db_close(connection)
+    async def test(self, ctx: commands.Context, user: discord.Member = None):
+        if user == None:
+            user = ctx.author
+
+        image = Image.open("assets/Images/trou_noir.jpg")
+        font = ImageFont.truetype("assets/Fonts/adler.ttf", 48,)
+        asset = user.avatar_url_as(size=128)
+        data = BytesIO(await asset.read())
+        pfp = Image.open(data)
+        pfp = pfp.resize((240, 240))
+        image.paste(pfp, (270, 140))
+        draw = ImageDraw
+        draw.Draw(image)
+        text = f"{ctx.author.display_name}#{ctx.author.discriminator}\nà déformé l'espace-temps\npour nous rejoindre!"
+        draw.text((200, 35), text, (0, 0, 0), font=font)
+        image.save("assets/Images/profile.jpg")
+
+        await ctx.send(file=discord.File("assets/Images/profile.jpg"))
 
     @ bot.error
     async def bot_error(self, ctx, error):
