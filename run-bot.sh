@@ -1,7 +1,8 @@
 #!/bin/sh
-pgrep python
-if [ $? = 1 ]
+pgrep -f "SCREEN -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/BOTS/dogsbot/main.py"
+
+if [ $? -eq 1 ]
 then
 cd /home/kilian/BOTS/dogsbot/
-/home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/BOTS/dogsbot/main.py&
+screen -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/BOTS/dogsbot/main.py
 fi
