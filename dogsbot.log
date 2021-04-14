@@ -2110,3 +2110,59 @@ In embed.fields.1.value: This field is required' dans le serveur Dogsbot Debug p
 2021-03-31 14:16:08.750786 | Chargement de la catégorie admin par Stain#4449 terminée. | 
 2021-03-31 20:38:04.221006 | Le bot est prêt. | 
 >>>>>>> b37f21d98e4726dc0f75806fcce8430a542eae91
+2021-04-01 22:03:23.364098 | Le bot est prêt. | 
+2021-04-01 22:03:40.475934 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb3fd9190>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-01 22:38:11.202761 | Le bot est prêt. | 
+2021-04-01 23:49:43.270203 | Le bot est prêt. | 
+2021-04-02 08:02:10.811103 | Le bot est prêt. | 
+2021-04-02 08:05:12.089112 | Le bot est prêt. | 
+2021-04-02 12:29:09.098979 | Le bot est prêt. | 
+2021-04-02 23:23:30.932821 | Le bot est prêt. | 
+2021-04-02 23:27:40.643789 | Le bot est prêt. | 
+2021-04-02 23:32:17.752899 | Le bot est prêt. | 
+2021-04-03 00:36:44.601826 | Le bot est prêt. | 
+2021-04-03 00:37:00.208347 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:37:16.674825 | Le bot est prêt. | 
+2021-04-03 00:39:24.433113 | Le bot est prêt. | 
+2021-04-03 00:40:49.820636 | Le bot est prêt. | 
+2021-04-03 00:43:54.865185 | Le bot est prêt. | 
+2021-04-03 00:46:59.257657 | Le bot est prêt. | 
+2021-04-03 00:49:51.069071 | Le bot est prêt. | 
+2021-04-03 00:53:02.751741 | Le bot est prêt. | 
+2021-04-03 00:54:42.830173 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par Stain#4449(id: 440141443877830656)(channel: 🤖-commandes-bots) | 
+2021-04-03 00:56:32.294159 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:56:44.058379 | La table welcome a été créée! | 
+2021-04-03 00:59:23.308753 | Le bot est prêt. | 
+2021-04-03 00:59:38.270414 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:59:44.013982 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 01:07:02.600073 | Le bot est prêt. | 
+2021-04-03 01:08:26.239975 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 09:29:46.894081 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par CometeDaxter#6221(id: 228454723668148224)(channel: 🤖-commandes-bots) | 
+2021-04-03 09:29:59.239620 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par CometeDaxter#6221(id: 228454723668148224)(channel: 🤖-commandes-bots) | 
+2021-04-04 08:14:28.160372 | Le bot est prêt. | 
+2021-04-04 08:17:47.226390 | Le bot est prêt. | 
+2021-04-04 09:56:12.571851 | Le bot est prêt. | 
+2021-04-04 19:14:35.761405 | Le bot est prêt. | 
+2021-04-04 22:33:01.240966 | Le bot est prêt. | 
+2021-04-04 22:44:12.433690 | Le bot est prêt. | 
+2021-04-04 23:03:22.538798 | Le bot est prêt. | 
+2021-04-04 23:05:19.088753 | Le bot est prêt. | 
+2021-04-04 23:06:14.647367 | Le bot est prêt. | 
+2021-04-04 23:47:49.239203 | Le bot est prêt. | 
+2021-04-04 23:50:15.073599 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb2d814d8>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-04 23:53:30.305850 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb1989668>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-05 00:22:22.272672 | Le bot est prêt. | 
+2021-04-08 15:48:58.153455 | Le bot est prêt. | 
+2021-04-08 15:49:54.142885 | Le bot est prêt. | 
+2021-04-08 15:50:07.789695 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-08 15:50:07.790700 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-09 15:49:27.187195 | La table tournaments a été créée! | 
+2021-04-09 15:49:27.187521 | La table tournament_participants a été créée! | 
+2021-04-09 15:49:27.187717 | La table authorized_starters a été créée! | 
+2021-04-12 18:57:16.273796 | Le bot est prêt. | 
+2021-04-12 23:04:25.562331 | 'Command raised an exception: Forbidden: 403 Forbidden (error code: 50013): Missing Permissions' dans le serveur Super Switch Lan-Play France par Stain#4449(id: 440141443877830656)(channel: ⚙-atmosphère) | 
+2021-04-13 22:35:34.131150 | Le bot est prêt. | 
+2021-04-13 22:58:38.356391 | Le bot est prêt. | 
+2021-04-14 09:46:06.912371 | Le bot est prêt. | 
+2021-04-14 09:47:07.041153 | Le bot est prêt. | 
+2021-04-14 09:48:07.016440 | Le bot est prêt. | 
