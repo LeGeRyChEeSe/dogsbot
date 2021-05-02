@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
 from traceback import format_exception
-from PIL import Image, ImageFont, ImageDraw
 from io import BytesIO
 
 import discord

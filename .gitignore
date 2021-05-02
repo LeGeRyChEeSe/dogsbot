@@ -1,3 +1,4 @@
 .git
 .env
 ./run-bot.sh
+./dogsbot.log
