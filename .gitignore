@@ -1,2 +1,4 @@
 .git
 .env
+./run-bot.sh
+tests

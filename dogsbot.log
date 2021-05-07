@@ -2054,6 +2054,11 @@ In embed.fields.1.value: This field is required' dans le serveur Dogsbot Debug p
 2021-03-27 21:38:51.813570 | La table tournament_participants a été créée! | 
 2021-03-27 21:38:51.813570 | La table authorized_starters a été créée! | 
 2021-03-28 05:01:24.065652 | Le bot est prêt. | 
+<<<<<<< HEAD
+2021-04-01 21:15:33.073992 | Le bot est prêt. | 
+2021-04-01 21:16:44.741078 | Le bot est prêt. | 
+2021-04-01 21:17:53.256412 | 'id is a required argument that is missing.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+=======
 2021-03-28 21:17:01.979344 | Le bot est prêt. | 
 2021-03-29 17:38:27.164897 | Le bot est prêt. | 
 2021-03-30 13:24:51.743396 | 'Command raised an exception: NotFound: 404 Not Found (error code: 10008): Unknown Message' dans le serveur 𝕮4𝖙𝖘 𝕽𝖔𝖌 𝕮𝖞𝖓𝖊𝖙𝖎𝖈 par 😻 𝓢 𝓵 4 𝓹'#5764(id: 612146531432136724)(channel: 💫-𝓜4𝓙𝓞𝓡𝓢-💫) | 
@@ -2104,3 +2109,299 @@ In embed.fields.1.value: This field is required' dans le serveur Dogsbot Debug p
 2021-03-31 14:16:08.509937 | Déchargement de la catégorie admin par Stain#4449terminée. | 
 2021-03-31 14:16:08.750786 | Chargement de la catégorie admin par Stain#4449 terminée. | 
 2021-03-31 20:38:04.221006 | Le bot est prêt. | 
+>>>>>>> b37f21d98e4726dc0f75806fcce8430a542eae91
+2021-04-01 22:03:23.364098 | Le bot est prêt. | 
+2021-04-01 22:03:40.475934 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb3fd9190>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-01 22:38:11.202761 | Le bot est prêt. | 
+2021-04-01 23:49:43.270203 | Le bot est prêt. | 
+2021-04-02 08:02:10.811103 | Le bot est prêt. | 
+2021-04-02 08:05:12.089112 | Le bot est prêt. | 
+2021-04-02 12:29:09.098979 | Le bot est prêt. | 
+2021-04-02 23:23:30.932821 | Le bot est prêt. | 
+2021-04-02 23:27:40.643789 | Le bot est prêt. | 
+2021-04-02 23:32:17.752899 | Le bot est prêt. | 
+2021-04-03 00:36:44.601826 | Le bot est prêt. | 
+2021-04-03 00:37:00.208347 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:37:16.674825 | Le bot est prêt. | 
+2021-04-03 00:39:24.433113 | Le bot est prêt. | 
+2021-04-03 00:40:49.820636 | Le bot est prêt. | 
+2021-04-03 00:43:54.865185 | Le bot est prêt. | 
+2021-04-03 00:46:59.257657 | Le bot est prêt. | 
+2021-04-03 00:49:51.069071 | Le bot est prêt. | 
+2021-04-03 00:53:02.751741 | Le bot est prêt. | 
+2021-04-03 00:54:42.830173 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par Stain#4449(id: 440141443877830656)(channel: 🤖-commandes-bots) | 
+2021-04-03 00:56:32.294159 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:56:44.058379 | La table welcome a été créée! | 
+2021-04-03 00:59:23.308753 | Le bot est prêt. | 
+2021-04-03 00:59:38.270414 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 00:59:44.013982 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 01:07:02.600073 | Le bot est prêt. | 
+2021-04-03 01:08:26.239975 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-03 09:29:46.894081 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par CometeDaxter#6221(id: 228454723668148224)(channel: 🤖-commandes-bots) | 
+2021-04-03 09:29:59.239620 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Super Switch Lan-Play France par CometeDaxter#6221(id: 228454723668148224)(channel: 🤖-commandes-bots) | 
+2021-04-04 08:14:28.160372 | Le bot est prêt. | 
+2021-04-04 08:17:47.226390 | Le bot est prêt. | 
+2021-04-04 09:56:12.571851 | Le bot est prêt. | 
+2021-04-04 19:14:35.761405 | Le bot est prêt. | 
+2021-04-04 22:33:01.240966 | Le bot est prêt. | 
+2021-04-04 22:44:12.433690 | Le bot est prêt. | 
+2021-04-04 23:03:22.538798 | Le bot est prêt. | 
+2021-04-04 23:05:19.088753 | Le bot est prêt. | 
+2021-04-04 23:06:14.647367 | Le bot est prêt. | 
+2021-04-04 23:47:49.239203 | Le bot est prêt. | 
+2021-04-04 23:50:15.073599 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb2d814d8>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-04 23:53:30.305850 | 'Command raised an exception: UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0xb1989668>' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-05 00:22:22.272672 | Le bot est prêt. | 
+2021-04-08 15:48:58.153455 | Le bot est prêt. | 
+2021-04-08 15:49:54.142885 | Le bot est prêt. | 
+2021-04-08 15:50:07.789695 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-08 15:50:07.790700 | 'Command "pibg" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-09 15:49:27.187195 | La table tournaments a été créée! | 
+2021-04-09 15:49:27.187521 | La table tournament_participants a été créée! | 
+2021-04-09 15:49:27.187717 | La table authorized_starters a été créée! | 
+2021-04-12 18:57:16.273796 | Le bot est prêt. | 
+2021-04-12 23:04:25.562331 | 'Command raised an exception: Forbidden: 403 Forbidden (error code: 50013): Missing Permissions' dans le serveur Super Switch Lan-Play France par Stain#4449(id: 440141443877830656)(channel: ⚙-atmosphère) | 
+2021-04-13 22:35:34.131150 | Le bot est prêt. | 
+2021-04-13 22:58:38.356391 | Le bot est prêt. | 
+2021-04-14 09:46:06.912371 | Le bot est prêt. | 
+2021-04-14 09:47:07.041153 | Le bot est prêt. | 
+2021-04-14 09:48:07.016440 | Le bot est prêt. | 
+2021-04-14 11:11:06.935806 | Le bot est prêt. | 
+2021-04-14 11:21:17.255563 | Le bot est prêt. | 
+2021-04-14 11:24:06.299682 | Le bot est prêt. | 
+2021-04-14 16:56:06.638683 | Le bot est prêt. | 
+2021-04-14 17:14:37.454074 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-14 17:14:41.100133 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-14 17:14:55.057075 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-14 17:18:51.850368 | Le bot est prêt. | 
+2021-04-14 17:24:27.901579 | Le bot est prêt. | 
+2021-04-14 17:26:43.757684 | Le bot est prêt. | 
+2021-04-14 17:38:38.435196 | Le bot est prêt. | 
+2021-04-14 17:44:11.174391 | Le bot est prêt. | 
+2021-04-14 17:44:19.012519 | 'Command raised an exception: PermissionError: [Errno 1] Operation not permitted' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-14 17:48:38.798665 | Le bot est prêt. | 
+2021-04-14 17:48:52.737485 | Le bot est prêt. | 
+2021-04-14 17:55:33.510312 | Le bot est prêt. | 
+2021-04-14 17:56:06.574711 | Le bot est prêt. | 
+2021-04-14 17:57:06.704118 | Le bot est prêt. | 
+2021-04-14 17:58:06.668590 | Le bot est prêt. | 
+2021-04-14 18:00:06.962773 | Le bot est prêt. | 
+2021-04-14 18:24:30.996893 | Le bot est prêt. | 
+2021-04-14 18:51:06.847846 | Le bot est prêt. | 
+2021-04-24 00:30:57.311773 | Le bot est prêt. | 
+2021-04-24 00:42:11.991820 | Le bot est prêt. | 
+2021-04-24 00:42:54.973987 | Le bot est prêt. | 
+2021-04-24 02:03:08.642701 | Le bot est prêt. | 
+2021-04-24 02:25:37.486006 | Le bot est prêt. | 
+2021-04-24 02:27:07.051614 | Le bot est prêt. | 
+2021-04-24 02:31:19.163033 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:32:38.337048 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:38:28.522848 | Le bot est prêt. | 
+2021-04-24 02:39:04.118360 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:41:10.189193 | Le bot est prêt. | 
+2021-04-24 02:41:12.735838 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:46:12.962528 | Le bot est prêt. | 
+2021-04-24 02:49:30.345239 | Le bot est prêt. | 
+2021-04-24 02:49:33.607447 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:52:09.470792 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:52:24.262306 | J'ai rejoint le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:52:53.370815 | 'Command raised an exception: NameError: name 'db_connect' is not defined' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 02:53:21.452060 | 'Command raised an exception: StringDataRightTruncationError: valeur trop longue pour le type character varying(5)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 02:55:17.456703 | J'ai quitté le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 02:55:56.292939 | J'ai rejoint le serveur Dogsbot Debug(748856777105211423)! | 
+2021-04-24 03:01:03.197953 | 'Command raised an exception: StringDataRightTruncationError: valeur trop longue pour le type character varying(5)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 04:45:32.016377 | Le bot est prêt. | 
+2021-04-24 04:45:46.299177 | 'Command raised an exception: NameError: name 'db_connect' is not defined' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 04:50:00.466576 | Le bot est prêt. | 
+2021-04-24 04:53:23.234434 | Le bot est prêt. | 
+2021-04-24 05:15:08.586817 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 05:15:08.768466 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 05:15:14.761040 | 'Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
+In embed.description: This field is required' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:15:14.776013 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:17:39.070792 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 05:17:39.330260 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 05:17:42.631691 | 'Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
+In embed.description: This field is required' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:17:51.926878 | Le bot est prêt. | 
+2021-04-24 05:17:55.082014 | 'Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
+In embed.description: This field is required' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:18:03.782109 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 05:18:04.002733 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 05:18:12.724685 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « tournaments »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:20:57.948837 | Le bot est prêt. | 
+2021-04-24 05:21:07.544987 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « tournaments »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 05:22:32.386972 | Le bot est prêt. | 
+2021-04-24 05:22:35.054858 | 'Command raised an exception: TypeError: executemany() takes 3 positional arguments but 5 were given' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 17:38:59.095719 | Le bot est prêt. | 
+2021-04-24 17:40:58.741952 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « tournaments »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 17:42:56.688826 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 17:42:56.869813 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 17:43:00.499199 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « tournaments »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:33:00.636692 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 18:33:00.894643 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 18:33:05.704951 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:33:51.203873 | Le bot est prêt. | 
+2021-04-24 18:33:54.904250 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:37:02.518373 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:52:28.909364 | Le bot est prêt. | 
+2021-04-24 18:52:34.744003 | 'Command raised an exception: NotFound: 404 Not Found (error code: 10008): Unknown Message' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:53:54.029165 | 'Command raised an exception: UnboundLocalError: local variable 'con' referenced before assignment' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:55:04.824766 | Le bot est prêt. | 
+2021-04-24 18:55:52.012139 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « WHERE »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 18:56:08.326767 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 18:56:08.526562 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 18:57:14.760333 | 'Command raised an exception: UndefinedColumnError: la colonne « authorized_starters » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:12:18.868859 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:12:19.085887 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 19:12:43.876845 | 'Command raised an exception: ForeignKeyViolationError: une instruction insert ou update sur la table « authorized_starters » viole la contrainte de clé
+étrangère « authorized_starters_id_tournament_fkey »
+DETAIL:  La clé (id_tournament)=(AEdtk8U8) n'est pas présente dans la table « tournaments ».' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:28:54.726450 | Le bot est prêt. | 
+2021-04-24 19:40:07.525974 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:40:07.741260 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 19:40:13.062960 | 'Command raised an exception: NotNullViolationError: une valeur NULL viole la contrainte NOT NULL de la colonne « guild_id »
+DETAIL:  La ligne en échec contient (null, lybEAyxC, null, null, null, null, null, 8, 0, null, f, f, 1)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:40:58.089038 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:40:58.289714 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 19:41:30.482061 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:41:54.334965 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:41:54.509115 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 19:41:56.945511 | 'Command raised an exception: UniqueViolationError: la valeur d'une clé dupliquée rompt la contrainte unique « tournaments_pkey »
+DETAIL:  La clé « (guild_id)=(748856777105211423) » existe déjà.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:46:31.530009 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:56:22.069298 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:56:22.294992 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-24 19:56:48.120067 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-24 19:57:41.624290 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-24 19:57:41.826371 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:11:28.647988 | Le bot est prêt. | 
+2021-04-26 14:12:02.216104 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:15:36.827986 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:15:37.065213 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:15:59.746716 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:16:21.565794 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:16:21.800038 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:18:55.277202 | Le bot est prêt. | 
+2021-04-26 14:18:59.146243 | 'Command "create" is not found' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:21:02.537157 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:21:10.628329 | Le bot est prêt. | 
+2021-04-26 14:24:37.575064 | Le bot est prêt. | 
+2021-04-26 14:26:12.386232 | Le bot est prêt. | 
+2021-04-26 14:31:53.470343 | Le bot est prêt. | 
+2021-04-26 14:32:36.248561 | 'Command raised an exception: UndefinedColumnError: la colonne « tournaments » de la relation « tournaments » n'existe pas' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:35:32.896473 | Le bot est prêt. | 
+2021-04-26 14:36:00.934674 | 'Command raised an exception: DataError: invalid input for query argument $7: '21/12/21 12:21' ('str' object has no attribute 'toordinal')' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:38:06.071625 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:38:06.310007 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:38:31.689852 | 'Command raised an exception: DataError: invalid input for query argument $8: '8' (an integer is required (got type str))' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:43:34.559864 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:43:34.771790 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:44:06.751958 | 'Command raised an exception: TypeError: executemany() takes 3 positional arguments but 5 were given' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:53:29.698302 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:53:29.928872 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:53:52.489878 | 'Command raised an exception: InterfaceError: the server expects 3 arguments for this query, 8 were passed
+HINT:  Check the query against the passed list of arguments.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:55:56.395867 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:55:56.600814 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:56:24.670674 | 'Command raised an exception: AttributeError: 'list' object has no attribute 'id'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:57:45.774676 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:57:45.968697 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:58:06.214466 | 'Command raised an exception: AttributeError: 'generator' object has no attribute 'id'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 14:59:02.886003 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 14:59:03.108013 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 14:59:28.588644 | 'Command raised an exception: AttributeError: 'generator' object has no attribute 'id'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:01:15.377409 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:01:15.618709 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:01:53.465676 | 'Command raised an exception: AttributeError: 'list' object has no attribute 'id'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:02:51.440723 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:02:51.686588 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:03:46.192056 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:03:46.410224 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:05:40.564768 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:05:40.809912 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:05:59.216150 | 'Command raised an exception: InterfaceError: the server expects 3 arguments for this query, 8 were passed
+HINT:  Check the query against the passed list of arguments.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:07:55.419879 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:07:55.612241 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:11:04.728261 | 'Command raised an exception: ValueError: not enough values to unpack (expected 2, got 1)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:11:56.719974 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:11:56.904508 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:12:20.437562 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:14:08.538698 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:14:08.758887 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:14:30.101679 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:17:36.091315 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:17:36.341530 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:18:23.503234 | Des données ont été inséré dans la table tournaments! | 
+2021-04-26 15:19:56.822660 | 'Command raised an exception: AttributeError: 'NoneType' object has no attribute 'title'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:21:47.448816 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:21:47.655309 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:21:51.608546 | 'Command raised an exception: AttributeError: 'NoneType' object has no attribute 'title'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:22:34.310482 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:22:34.509494 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:22:36.006564 | 'Command raised an exception: AttributeError: 'NoneType' object has no attribute 'title'' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:23:00.739588 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:23:00.983828 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:24:40.420110 | Des données ont été inséré dans la table tournaments! | 
+2021-04-26 15:25:34.297664 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:25:34.503047 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:29:27.276768 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:29:27.497571 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:30:02.414614 | 'Command raised an exception: DataError: invalid input for query argument $4: 2 (expected str, got int)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:31:13.738222 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:31:13.918328 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:31:45.295669 | Des données ont été inséré dans la table tournaments! | 
+2021-04-26 15:33:09.237391 | Des données ont été inséré dans la table tournaments! | 
+2021-04-26 15:42:00.456513 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:42:00.647069 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:42:06.663500 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:43:04.894573 | Le bot est prêt. | 
+2021-04-26 15:43:12.050620 | 'Command raised an exception: UndefinedParameterError: Il n'existe pas de paramètres $1' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:43:56.360672 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:43:56.608199 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:44:01.857359 | 'Command raised an exception: ForeignKeyViolationError: UPDATE ou DELETE sur la table « tournaments » viole la contrainte de clé étrangère
+« authorized_starters_id_tournament_fkey » de la table « authorized_starters »
+DETAIL:  La clé (id_tournament)=(LILgA6Us) est toujours référencée à partir de la table « authorized_starters ».' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:53:25.687202 | Des données ont été supprimé dans la table tournaments! | 
+2021-04-26 15:54:08.830567 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:54:08.950520 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:54:09.036930 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:54:34.580535 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:54:34.803464 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:54:45.623359 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:54:46.030157 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:55:09.072596 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:55:09.270959 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:55:09.855701 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:56:40.353310 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:56:40.598560 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:56:43.407106 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:58:55.885675 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:59:23.203845 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:59:23.384616 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 15:59:27.708985 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 15:59:55.206686 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 15:59:55.408660 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:00:36.177973 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:00:36.420459 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:04:29.732380 | 'Command raised an exception: IndexError: list index out of range' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:07:11.662445 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:07:11.880909 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:07:14.366119 | 'Command raised an exception: PostgresSyntaxError: ON CONFLICT DO UPDATE requiert une spécification d'inférence ou un nom de contrainte
+HINT:  Par exemple, ON CONFLICT (nom_colonne)' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:12:40.858475 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:12:41.104319 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:12:44.986605 | 'Command raised an exception: InvalidColumnReferenceError: il n'existe aucune contrainte unique ou contrainte d'exclusion correspondant à la spécification ON CONFLICT' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:13:09.983662 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:13:10.191328 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:13:13.263541 | 'Command raised an exception: PostgresSyntaxError: erreur de syntaxe sur ou près de « $1 »' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:13:42.283351 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:13:42.467856 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:13:45.917628 | 'Command raised an exception: InvalidColumnReferenceError: il n'existe aucune contrainte unique ou contrainte d'exclusion correspondant à la spécification ON CONFLICT' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:13:56.796521 | Déchargement de la catégorie games par Stain#4449terminée. | 
+2021-04-26 16:13:56.978932 | Chargement de la catégorie games par Stain#4449 terminée. | 
+2021-04-26 16:13:58.920635 | 'Command raised an exception: UnboundLocalError: local variable 'current_tournament' referenced before assignment' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:16:42.894787 | 'member is a required argument that is missing.' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 
+2021-04-26 16:16:47.957980 | Fichier de log du serveur Dogsbot Debug généré par Stain#4449(id: 748856777105211423) | 
+2021-04-26 16:18:27.058315 | 'Command raised an exception: NameError: name 'db_connect' is not defined' dans le serveur Dogsbot Debug par Stain#4449(id: 440141443877830656)(channel: général-tests) | 

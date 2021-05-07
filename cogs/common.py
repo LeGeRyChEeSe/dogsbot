@@ -294,7 +294,8 @@ class Common(commands.Cog):
             "switch.servegame.com:11451",
             "switch-lanyplay-de.ddns.net:11451",
             "cajuina.ddns.net:11451",
-            "lanplay.verdandi.icu:11451"
+            "lanplay.verdandi.icu:11451",
+            "stain.ddns.net:11451"
         ]
 
         for server in servers_list:

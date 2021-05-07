@@ -1,61 +1,46 @@
 import asyncio
+import asyncpg
 import os
 import traceback
-from itertools import cycle
+from asyncpg.exceptions import StringDataRightTruncationError
 from dotenv import load_dotenv
-from math import floor
 
 import discord
 from discord.ext import commands
 
 from events.functions import *
 
+db_path = "./assets/Data/pairs.db"
+
 load_dotenv()
 
 
 async def get_prefixes(client: commands.Bot, message: discord.Message):
-    connection, cursor = await db_connect()
 
-    try:
-        prefix = await select(cursor, _select=[
-            "prefix"], _from="prefix", _where=f"guild={message.guild.id}")
-    except:
-        pass
+    async with client.pool.acquire() as con:
+        prefix = await con.fetch('''
+        SELECT guild_prefix
+        FROM global_config
+        WHERE guild_id = $1
+        ''', message.guild.id)
 
-    if prefix:
-        return str(prefix[0])
-    else:
-        return "!"
+    return prefix[0].get("guild_prefix")
 
 
 intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix=get_prefixes, intents=intents)
-status = cycle(['Status 1', 'Status 2'])
-
-
-def team_dev(ctx: commands.Context):
-    return ctx.author.id == 440141443877830656
+client.pool = client.loop.run_until_complete(asyncpg.create_pool(
+    host="stain.ddns.net", user="kilian", password="LeGeRyChEeSe41400", database="dogsbot"))
 
 
 # Events
 
-
 @client.event
 async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=discord.Game("Wouaf | !help"))
-    connection, cursor = await db_connect()
-
-    try:
-        await cursor.execute("DROP TABLE chat_table")
-    except sqlite3.OperationalError:
-        pass
-    else:
-        await connection.commit()
-    await create(connection, cursor, "dragonball", _names=[
-        "guild_id", "user_id", "player_infos"], _type=["INT", "INT", "TEXT"])
-    await db_close(connection)
-    print(f"{client.user.display_name.title()}#{client.user.discriminator} est prêt.")
+    print(
+        f"{client.user.display_name.title()}#{client.user.discriminator} est prêt.")
     write_file(log_file, "Le bot est prêt.", is_log=True)
 
 
@@ -95,22 +80,30 @@ async def on_member_remove(member: discord.Member):
 
 @client.event
 async def on_guild_join(guild: discord.Guild):
-    connection, cursor = await db_connect()
-    await cursor.execute(
-        "INSERT INTO prefix(guild, prefix) VALUES(?, ?)", (guild.id, "!"))
-    insert(connection, cursor, _into="prefix", _names=[
-           "guild", "prefix"], _values=[guild.id, "!"])
-    await db_close(connection)
+
+    async with client.pool.acquire() as con:
+        await con.execute('''
+        INSERT INTO global_config(guild_id, guild_name, guild_owner_id)
+        VALUES($1, $2, $3)
+        ON CONFLICT (guild_id)
+        DO UPDATE
+        SET guild_name = $2, guild_owner_id = $3
+        WHERE global_config.guild_id = $1
+        ''', guild.id, guild.name, guild.owner_id)
+
     write_file(log_file,
-               f"J'ai rejoint le serveur {guild.name}!", is_log=True)
+               f"J'ai rejoint le serveur {guild.name}({guild.id})!", is_log=True)
 
 
 @client.event
 async def on_guild_remove(guild: discord.Guild):
-    connection, cursor = await db_connect()
-    delete(connection, cursor, _from="prefix", _where=f"guild={guild.id}")
+    async with client.pool.acquire() as con:
+        await con.execute('''
+        DELETE FROM global_config
+        WHERE guild_id = $1
+        ''', guild.id)
     write_file(log_file,
-               f"J'ai quitté le serveur {guild.name}!", is_log=True)
+               f"J'ai quitté le serveur {guild.name}({guild.id})!", is_log=True)
 
 
 # Commands Error
@@ -134,6 +127,8 @@ async def on_command_error(ctx: commands.Context, error):
         await ctx.send(f"Je n'ai pas les permissions nécessaires pour exécuter la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
     elif isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f"Veuillez patienter encore {round(error.retry_after)} secondes avant de pouvoir utiliser la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
+    elif isinstance(error, StringDataRightTruncationError):
+        await ctx.send("Veuillez entrer un préfix de commande inférieur ou égal à 5 caractères, {ctx.author.mention}")
     else:
         etype = type(error)
         trace = error.__traceback__

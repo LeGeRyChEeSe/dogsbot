@@ -1,18 +1,13 @@
 from os import error
-from assets.Games.dragonball.classes.Skill import Skill
-from assets.Games.dragonball.classes.Saiyan import Saiyan
 import asyncio
 import random
 import traceback
 
 import discord
-from discord import embeds
 from discord.ext import commands
-from nltk.chat.util import Chat
 from events.functions import *
 
 from assets.Games.Pendu.pendu import *
-from assets.Games.Chess.classes.chess import Chess
 
 
 class Games(commands.Cog):
@@ -20,7 +15,6 @@ class Games(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
         self.game_user = {}
-        self.db_path = "./assets/Data/pairs.db"
 
     def not_command(self, message):
         return message.content.startswith(str(self.client.command_prefix))
@@ -50,10 +44,15 @@ class Games(commands.Cog):
         return inner
 
     async def check_authorized_starters(self, ctx: commands.Context, id_tournament: int):
-        connection, cursor = await db_connect()
-        authorized_starters = await cursor.execute("SELECT id_starter, is_role FROM authorized_starters WHERE id_tournament = ?", (id_tournament,))
-        authorized_starters = await authorized_starters.fetchall()
-        await db_close(connection)
+
+        async with self.client.pool.acquire() as con:
+            authorized_starters = await con.fetch('''
+            SELECT id_starter, is_role
+            FROM authorized_starters
+            WHERE id_tournament = $1
+            ''', id_tournament)
+
+        print(authorized_starters)
 
         if authorized_starters:
             for id in authorized_starters:
@@ -85,176 +84,6 @@ class Games(commands.Cog):
                      "Ah, ça je sais pas! Faut voir ça avec mon supérieur! <@!705704133877039124>"]
 
         await ctx.send(f"{random.choice(responses)}")
-
-    @ commands.command(hidden=True, brief="Discuter en live avec DogsBot!",
-                       description="Discutez sans pression avec DogsBot, pour cela tapez simplement la COMMANDE 'chat'. Vous pouvez maintenant discuter avec lui sans avoir besoin de taper la commande à chaque début de phrase!\n\nSon interaction est pour le moment très limité à de simples bonjour|salut|hey|slt|coucou|wesh|bonsoir|bon matin|hello|hi|cc|hola.\n\nPour quitter la conversation tapez le MOT 'exit'",
-                       usage="")
-    async def chat(self, ctx: commands.Context, *_input_):
-
-        # Condition pour éviter de lancer plusieurs fils de discussion avec le chatbot
-        connection, cursor = await db_connect()
-        create(connection, cursor, "chat_table",
-               _names=["user"], _type=["INT"])
-        user = select(cursor, _select=[
-                      "user"], _from="chat_table", _where=f"user={str(ctx.author.id)}")
-
-        if user:
-            return await ctx.send(f"Je suis déjà à votre écoute {ctx.author.mention} dans un autre canal!")
-
-        # Définition de la base de données pour le chatbot
-
-        selection = select(
-            cursor, _select=["questions", "responses"], _from="pairs", _fetchall=True)
-        pairs = []
-        for pair in selection:
-            element = [pair[0]]
-            pair_pop = pair[1].split("|")
-            pair_pop.pop()
-            element.append(
-                pair_pop)
-            pairs.append(element)
-
-        chat = Chat(pairs)
-        insert(connection, cursor, _into="chat_table",
-               _names=["user"], _values=[str(ctx.author.id)])
-
-        while _input_ != "exit":
-
-            message = f"> {_input_}\n{ctx.author.mention} "
-
-            if not _input_:
-                await ctx.send(f"{self.client.user.name} à votre écoute, {ctx.author.mention}!")
-            else:
-                chat_response = chat.respond(str(_input_))
-                try:
-                    message = message + chat_response
-                except Exception as e:
-                    await ctx.send(
-                        "Je n'ai pas de réponses à votre message, voulez-vous définir une/plusieurs réponses ? *("
-                        "**oui**/**non**)*")
-                    try:
-                        msg_to_confirm = await self.client.wait_for("message", check=self.check_confirm, timeout=120.0)
-                    except asyncio.TimeoutError:
-                        delete(connection, cursor, _from="chat_table",
-                               _where=f"user={str(ctx.author.id)}")
-                        await db_close(connection)
-                        return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
-                    else:
-                        if msg_to_confirm.content == "oui":
-                            await ctx.send(
-                                f"Veuillez donc entrer une ou plusieurs réponses au message *\"{_input_}\"* avec la syntaxe suivante: `\nréponse_1|réponse_2|réponse_n|...`")
-                            msg_to_edit = await self.client.wait_for("message", check=self.check_author(ctx),
-                                                                     timeout=300.0)
-                            if msg_to_edit.content == "exit":
-                                await ctx.send("On verra donc une prochaine fois!")
-                            else:
-                                insert(connection, cursor, _into="pairs", _names=[
-                                       "questions", "responses"], _values=[_input_, msg_to_edit.content])
-                                await ctx.send(
-                                    f"Les réponses suivantes ont été ajouté au(x) message(s) *\"{_input_}\"*:\n{str(msg_to_edit.content.split('|'))}")
-                        elif msg_to_confirm.content == "non":
-                            await ctx.send("Ok.")
-
-                else:
-                    await ctx.send(message)
-
-            try:
-                _input_ = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
-            except asyncio.TimeoutError:
-                delete(connection, cursor, _from="chat_table",
-                       _where=f"user={str(ctx.author.id)}")
-                connection.commit()
-                await db_close(connection)
-                return await ctx.send(f"Bon, moi je me tire si tu dis rien {ctx.author.mention}!")
-            else:
-                _input_ = _input_.content
-
-        await ctx.send(f"Merci {ctx.author.name}, à bientôt!")
-        delete(connection, cursor, _from="chat_table",
-               _where=f"user={str(ctx.author.id)}")
-        await db_close(connection)
-
-    @commands.group(hidden=True, name="dragonball", invoke_without_command=True, aliases=["db", "dg", "dragongrall", "dgl", "dbl"])
-    async def dragonball(self, ctx: commands.Context):
-
-        welcome_embed = discord.Embed(color=discord.Colour.dark_blue(
-        ), title=f"Bienvenue dans Dragon Grall, {ctx.author.display_name}!", timestamp=datetime.datetime.utcnow(), description=f"Tu es arrivé au bon endroit pour commencer à jouer au tout nouveau jeu Dragon Grall développé par Stain!\n(Tips: pour aller plus vite en tapant les commandes, au lieu d'écrire `{ctx.prefix}{ctx.command.name}` tu peux écrire `{ctx.prefix}{f'`, `{ctx.prefix}'.join(ctx.command.aliases[:-1])}` ou `{ctx.prefix}{ctx.command.aliases[-1]}` !)")
-
-        welcome_embed.add_field(
-            name="1ère Étape", value=f"Choisis ton personnage en tapant la commande `{ctx.prefix}{ctx.command.name} choice`", inline=False)
-        welcome_embed.add_field(
-            name="2ème Étape", value=f"Pour voir les caractéristiques de ton personnage tape la commande `{ctx.prefix}{ctx.command.name} player`", inline=False)
-        welcome_embed.add_field(
-            name="3ème Étape", value=f"Pour démarrer un combat avec un autre joueur du serveur, tape la commande `{ctx.prefix}{ctx.command.name} fight` suivi de ton adversaire. Par exemple si je veux me battre contre le joueur \@xXJeanMichelXx je tape alors la commande `{ctx.prefix}{ctx.command.name} fight @xXJeanMichelXx`")
-
-        welcome_embed.set_author(
-            name=f"{ctx.author.display_name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
-
-        dragon_ball_file = discord.File(
-            "assets/Images/Dragonball-Goku.png", filename="dragon_ball.png")
-        welcome_embed.set_thumbnail(url="attachment://dragon_ball.png")
-
-        await ctx.send(embed=welcome_embed, file=dragon_ball_file)
-
-    @dragonball.command()
-    async def choice(self, ctx: commands.Context, *args):
-        args = " ".join(list(args))
-        file_characters = "assets/Games/dragonball/assets/characters.json"
-        characters_json = read_file(file_characters, is_json=True)
-
-        connection, cursor = await db_connect()
-        try:
-            player = select(cursor, _select="player_infos", _from="dragonball",
-                            _where=f"guild_id = {ctx.guild.id} AND user_id = {ctx.author.id}")
-        except:
-            pass
-
-        if not args:
-            choice_player_embed = discord.Embed(color=discord.Colour.dark_gold(), title="Sélection du personnage",
-                                                description="Choisis le personnage que tu veux! Il te suivra durant ton parcours sur Dragon Grall! (Tu pourras le modifier en cours de route)", timestamp=datetime.datetime.utcnow())
-
-            for race in characters_json.values():
-                for character in race.values():
-                    name = character["name"]
-                    skills = character["skills"]
-                    character_skills = []
-                    for skill_name, skill in skills.items():
-                        character_skills.append(skill_name)
-                    choice_player_embed.add_field(
-                        name=name, value=character_skills, inline=False)
-
-            choice_player_embed.set_author(
-                name=f"{ctx.author.display_name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
-
-            choice_player_embed.set_footer(
-                text=f"{ctx.prefix}{self.dragonball.name} {ctx.command.name} <Personnage>")
-
-            dragon_ball_file = discord.File(
-                "assets/Images/Dragonball-Goku.png", filename="dragon_ball.png")
-            choice_player_embed.set_thumbnail(
-                url="attachment://dragon_ball.png")
-
-            await ctx.send(embed=choice_player_embed, file=dragon_ball_file)
-
-        else:
-            for race in characters_json.values():
-                for character in race.values():
-                    name = character["name"]
-                    skills = character["skills"]
-                    aliases = character["aliases"]
-                    if args.lower() == name.lower() or args.lower() in aliases:
-                        character_skills = []
-                        for skill_name, skill in skills.items():
-                            skill = Skill(
-                                skill_name, skill["description"], skill["damage"], skill["cost"], skill["style"], skill["self_damage"])
-                            character_skills.append(skill)
-                        insert(connection, cursor, _into="dragonball", _names=["guild_id", "user_id", "player_infos"], _values=[
-                               ctx.guild.id, ctx.author.id, str(Saiyan(ctx, name, character_skills))])
-                        await db_close(connection)
-
-    @dragonball.command(hidden=True)
-    async def test(self, ctx: commands.Context):
-        pass
 
     @commands.command(name="pendu", brief="Jouez au pendu!",
                       description="""Règles:
@@ -444,129 +273,52 @@ class Games(commands.Cog):
             set_file_logs(ctx.guild.id), msg, is_log=True)
         await get_log_channel(self.client, ctx, msg)
 
-    @commands.command(hidden=True, name="demineur", aliases=["mine", "minesweeper"])
-    async def demineur(self, ctx: commands.Context, *args):
-        pass
-
-    @commands.group(hidden=True, name="echecs", aliases=["echec", "chess"])
-    async def echecs(self, ctx: commands.Context, *args):
-        try:
-            chess = Chess(
-                ctx.message.mentions[0], ctx.message.mentions[1], self, ctx)
-        except error as er:
-            print(er)
-            return await ctx.send("Veuillez mentionner le premier et le second joueur.")
-        await ctx.send(chess.get_chess_board())
-
     @ commands.group(name="tournoi", aliases=["tournois", "tounrois", "tounroi", "tournament", "competition"], brief="Lister les tournois disponibles", invoke_without_command=True)
     async def tournoi(self, ctx: commands.Context):
-
-        """
-        tournaments(
-            id INTEGER PRIMARY KEY UNIQUE,
-            guild_id INT,
-            id_tournament TEXT,
-            title TEXT,
-            description TEXT,
-            rules TEXT,
-            reward TEXT,
-            date TEXT,
-            nb_max_participants INT,
-            nb_participants INT,
-            classement TEXT,
-            start INT,
-            finish INT,
-            rounds INT
-            )
-
-        tournament_participants(
-            id INTEGER PRIMARY KEY UNIQUE,
-            id_tournament TEXT,
-            id_participant INT,
-            score INT
-            )
-
-        authorized_starters(
-            id INTEGER PRIMARY KEY UNIQUE,
-            id_tournament TEXT,
-            id_starter INT,
-            is_role INT
-            )
-        """
 
         embed = discord.Embed()
         embed.title = "Tournois en cours"
         embed.description = f"Liste des tournois en cours | `{ctx.prefix}tournoi more <ID_du_tournoi>` pour plus d'informations"
         embed.color = discord.Color.greyple()
-        connection, cursor = await db_connect()
-
-        await cursor.execute(f"""CREATE TABLE IF NOT EXISTS tournaments(
-            id INTEGER PRIMARY KEY UNIQUE,
-            guild_id INT,
-            id_tournament TEXT,
-            title TEXT,
-            description TEXT,
-            rules TEXT,
-            reward TEXT,
-            date TEXT,
-            nb_max_participants INT,
-            nb_participants INT,
-            classement TEXT,
-            start INT,
-            finish INT,
-            rounds INT
-            )
-            """)
-
-        await cursor.execute(f"""CREATE TABLE IF NOT EXISTS tournament_participants(
-            id INTEGER PRIMARY KEY UNIQUE,
-            id_tournament TEXT,
-            id_participant INT,
-            score INT
-            )
-            """)
-
-        await cursor.execute(f"""CREATE TABLE IF NOT EXISTS authorized_starters(
-            id INTEGER PRIMARY KEY UNIQUE,
-            id_tournament TEXT,
-            id_starter INT,
-            is_role INT
-            )""")
-
-        await connection.commit()
-
-        write_file(log_file, "La table tournaments a été créée!", is_log=True)
-        write_file(
-            log_file, "La table tournament_participants a été créée!", is_log=True)
-        write_file(
-            log_file, "La table authorized_starters a été créée!", is_log=True)
 
         # List of tournaments
-        tournaments = await cursor.execute(
-            "SELECT id_tournament, title, date, nb_max_participants, nb_participants FROM tournaments WHERE guild_id = ?", (ctx.guild.id,))
-        tournaments = await tournaments.fetchall()
+
+        async with self.client.pool.acquire() as con:
+            tournaments = await con.fetch('''
+            SELECT id_tournament, title, date, nb_max_participants, nb_participants
+            FROM tournaments
+            WHERE guild_id = $1
+            ''', ctx.guild.id)
 
         for tournament in tournaments:
             embed.add_field(
-                name=tournament[1].title(), value=f"__**ID:**__ `{tournament[0]}`\n__**Date début:**__ {tournament[2]}")
+                name=tournament.get('title').title(), value=f"__**ID:**__ `{tournament.get('id_tournament')}`\n__**Date début:**__ {tournament.get('date')}")
 
         # Check if ctx.author is registered into a tournament
-        into_tournament = await cursor.execute(
-            "SELECT DISTINCT id_participant, id_tournament FROM tournament_participants WHERE id_participant = ?", (ctx.author.id,))
-        into_tournament = await into_tournament.fetchone()
+
+        async with self.client.pool.acquire() as con:
+            into_tournament = await con.fetch('''
+            SELECT DISTINCT id_participant, id_tournament
+            FROM tournament_participants
+            WHERE id_participant = $1
+            ''', ctx.author.id)
 
         if into_tournament:
 
             for i in tournaments:
 
-                if into_tournament[1] == i[0]:
-                    current_tournament = await cursor.execute(
-                        "SELECT id_tournament, title FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, into_tournament[1]))
-                    current_tournament = await current_tournament.fetchone()
-                    embed.add_field(name=f":white_check_mark: Vous êtes inscrit au tournoi {current_tournament[1].title()} :white_check_mark: ",
-                                    value=f"`{current_tournament[0]}`", inline=False)
+                if into_tournament[0].get('id_tournament') == i.get('id_tournament'):
+                    # We fetch the current tournament were the member participate
 
-        await db_close(connection)
+                    async with self.client.pool.acquire() as con:
+                        current_tournament = await con.fetch('''
+                        SELECT id_tournament, title
+                        FROM tournaments
+                        WHERE guild_id = $1 AND id_tournament = $2
+                        ''', ctx.guild.id, into_tournament[0].get('id_tournament'))
+
+                    embed.add_field(name=f":white_check_mark: Vous êtes inscrit au tournoi {current_tournament[0].get('title').title()} :white_check_mark: ",
+                                    value=f"`{current_tournament[0]}`", inline=False)
 
         embed.timestamp = datetime.datetime.utcnow()
         embed.set_footer(
@@ -580,54 +332,66 @@ class Games(commands.Cog):
         except asyncio.TimeoutError:
             pass
         else:
-            await new_participant.delete()
-            connection, cursor = await db_connect()
-            tournament = await cursor.execute(
-                "SELECT DISTINCT id_tournament, title, nb_max_participants, nb_participants FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, new_participant.content))
-            tournament = await tournament.fetchone()
+            # If the member wants to change tournament
+
+            async with self.client.pool.acquire() as con:
+                new_tournament = await con.fetch('''
+                SELECT DISTINCT id_tournament, title, nb_max_participants, nb_participants
+                FROM tournaments
+                WHERE guild_id = $1 AND id_tournament = $2
+                ''', ctx.guild.id, new_participant.content)
+
+            if not new_tournament:
+                return
+            else:
+                await new_participant.delete()
 
             embed = discord.Embed(
                 title="Inscription Tournoi", timestamp=datetime.datetime.utcnow(), color=discord.Color.green())
             embed.set_footer(
                 text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
 
-            # If ctx.author is registered into a tournament
+            async with self.client.pool.acquire() as con:
+                already_registered = await con.fetch('''
+                SELECT DISTINCT id FROM tournament_participants
+                WHERE id_tournament = $1 AND id_participant = $2
+                ''', new_tournament[0].get('id_tournament'), ctx.author.id)
+            # If ctx.author is registered into a new_tournament
             if into_tournament:
-                current_tournament = await cursor.execute(
-                    "SELECT DISTINCT nb_participants FROM tournaments WHERE id_tournament = ?", (into_tournament[1],))
-                current_tournament = await current_tournament.fetchone()
+                async with self.client.pool.acquire() as con:
+                    current_tournament = await con.fetch('''
+                    SELECT DISTINCT nb_participants
+                    FROM tournaments
+                    WHERE id_tournament = $1
+                    ''', into_tournament[0].get('id_tournament'))
 
-            if not tournament:
-                await db_close(connection)
-                return
-            elif tournament[2] == tournament[3]:
+            elif new_tournament[0].get('nb_max_participants') == new_tournament[0].get('nb_participants'):
                 embed.color = discord.Color.red()
                 embed.description = "Tournoi complet!"
-                await db_close(connection)
                 return await message.edit(embed=embed)
 
-            elif await(await cursor.execute("SELECT DISTINCT id FROM tournament_participants WHERE id_tournament = ? AND id_participant = ?", (tournament[0], ctx.author.id))).fetchone() != None:
-                embed.description = f"Vous êtes déjà inscrit au tournoi __**{tournament[1].title()}**__ {ctx.author.mention}!\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
+            elif already_registered != None:
+                embed.description = f"Vous êtes déjà inscrit au tournoi __**{new_tournament[0].get('title').title()}**__ {ctx.author.mention}!\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
 
-            elif into_tournament != None:
-                await cursor.execute(
-                    "UPDATE tournament_participants SET id_tournament = ?, score = 0 WHERE id_participant = ?", (tournament[0], ctx.author.id))
-                await cursor.execute(
-                    "UPDATE tournaments SET nb_participants = ? WHERE id_tournament = ?", (current_tournament[0]-1, into_tournament[1]))
-                await cursor.execute(
-                    "UPDATE tournaments SET nb_participants = ? WHERE id_tournament = ?", (tournament[3]+1, tournament[0]))
-                await connection.commit()
-                embed.description = f"Félicitations {ctx.author.mention}, vous vous êtes inscrit au tournoi __**{tournament[1].title()}**__\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
+            async with self.client.pool.acquire() as con:
+                await con.execute('''
+                INSERT INTO tournament_participants(id_tournament, id_participant)
+                VALUES($1, $2)
+                ''', new_tournament[0].get('id_tournament'), ctx.author.id)
 
-            else:
-                await cursor.execute("INSERT INTO tournament_participants(id_tournament, id_participant, score) VALUES(?, ?, 0)",
-                                     (tournament[0], ctx.author.id))
-                await cursor.execute(
-                    "UPDATE tournaments SET nb_participants = ? WHERE id_tournament = ?", (tournament[3]+1, tournament[0]))
-                embed.description = f"Félicitations {ctx.author.mention}, vous vous êtes inscrit au tournoi __**{tournament[1].title()}**__!\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
-                await connection.commit()
+                await con.execute('''
+                UPDATE tournaments
+                SET nb_participants = $1
+                WHERE id_tournament = $2
+                ''', new_tournament[0].get('nb_participants')+1, new_tournament[0].get('id_tournament'))
 
-            await db_close(connection)
+                if into_tournament != None:
+                    await con.execute('''
+                    UPDATE tournaments
+                    SET nb_participants = $1
+                    WHERE id_tournament = $2
+                    ''', current_tournament[0].get('nb_participants')-1, into_tournament[0].get('id_tournament'))
+            embed.description = f"Félicitations {ctx.author.mention}, vous vous êtes inscrit au tournoi __**{new_tournament[1].title()}**__\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
 
         await message.edit(embed=embed)
 
@@ -640,13 +404,20 @@ class Games(commands.Cog):
 
         id_tournament = random_string(8)
 
+        async with self.client.pool.acquire() as con:
+            await con.execute('''
+            INSERT INTO tournaments(guild_id, id_tournament)
+            VALUES($1, $2)
+            ''', ctx.guild.id, id_tournament)
+
         embed = discord.Embed(
             title="Tournoi créé", timestamp=datetime.datetime.utcnow(), color=discord.Color.greyple())
 
-        temp_embed = discord.Embed(
-            timestamp=datetime.datetime.utcnow(), color=discord.Color.greyple())
+        temp_embed = discord.Embed(title="Création de tournoi",
+                                   timestamp=datetime.datetime.utcnow(), color=discord.Color.greyple())
 
-        connection, cursor = await db_connect()
+        temp_response = {}
+        temp_response["authorized_starters"] = []
 
         message = await ctx.send(embed=temp_embed)
 
@@ -665,33 +436,61 @@ class Games(commands.Cog):
                 temp_name = name
                 name = name.content
 
-                if key == "date":
+                if key == "date" and name != None:
                     try:
                         datetime.datetime.strptime(name, dateFormatter)
                     except:
                         temp_embed.description = f"Erreur de conversion, veuillez entrer une date du type `jj/mm/aa HH:MM` après avoir retapé la commande `{ctx.prefix}{ctx.command.qualified_name}`"
                         await message.edit(embed=temp_embed)
-                        await db_close(connection)
                         return
+                    else:
+                        temp_response[key] = datetime.datetime.strptime(
+                            name, dateFormatter)
 
-                if key == "authorized_starters" and temp_name.mentions != None:
-                    for autorized_starter in temp_name.mentions:
-                        await cursor.execute("INSERT INTO authorized_starters(id_tournament, id_starter, is_role) VALUES(?, ?, 0)", (id_tournament, autorized_starter.id,))
-                if key == "authorized_starters" and temp_name.role_mentions != None:
-                    for autorized_starter in temp_name.role_mentions:
-                        await cursor.execute("INSERT INTO authorized_starters(id_tournament, id_starter, is_role) VALUES(?, ?, 1)", (id_tournament, autorized_starter.id,))
+                elif key == "authorized_starters":
 
-                # Création du tournoi si celui-ci n'existe pas déjà
-                elif await(await cursor.execute("SELECT DISTINCT id FROM tournaments WHERE id_tournament = ?", (id_tournament,))).fetchone() == None:
-                    await cursor.execute(f"INSERT INTO tournaments(guild_id, id_tournament, nb_max_participants, nb_participants, start, finish, rounds, {key}) VALUES(?, ?, 8, 0, 0, 0, 1, ?)",
-                                         (ctx.guild.id, id_tournament, name))
+                    if temp_name.mentions != None:
+                        for member in temp_name.mentions:
+                            temp_response["authorized_starters"].append(
+                                (member.id, False))
+
+                    if temp_name.role_mentions != None:
+                        for member in temp_name.role_mentions:
+                            temp_response["authorized_starters"].append(
+                                (member.id, True))
+
                 else:
-                    await cursor.execute(
-                        f"UPDATE tournaments SET {key} = ? WHERE guild_id = ? AND id_tournament = ?", (name, ctx.guild.id, id_tournament))
+                    try:
+                        int(name)
+                    except:
+                        temp_response[key] = name
+                    else:
+                        temp_response[key] = int(name)
+
                 embed.add_field(
                     name=value, value=name, inline=False)
-        await connection.commit()
-        await db_close(connection)
+
+        async with self.client.pool.acquire() as con:
+            # Création du tournoi si celui-ci n'existe pas déjà
+            await con.execute('''
+            INSERT INTO tournaments(guild_id, id_tournament, title, description, rules, reward, date, nb_max_participants, rounds)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (title)
+            DO UPDATE
+            SET title = $3,
+            description = $4,
+            rules = $5,
+            reward = $6,
+            date = $7,
+            nb_max_participants = $8,
+            rounds = $9
+            WHERE tournaments.guild_id = $1 AND tournaments.id_tournament = $2
+            ''', ctx.guild.id, id_tournament, temp_response["title"], temp_response["description"], temp_response["rules"], temp_response["reward"], temp_response["date"], temp_response["nb_max_participants"], temp_response["rounds"])
+
+            for mention in temp_response["authorized_starters"]:
+                await con.execute('''
+                INSERT INTO authorized_starters(id_tournament, id_starter, is_role) VALUES($1, $2, $3)
+                ''', id_tournament, mention[0], mention[1])
 
         embed.set_footer(
             text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
@@ -725,23 +524,26 @@ class Games(commands.Cog):
             await message.edit(embed=embed)
             return
 
-        connection, cursor = await db_connect()
-        tournament = await cursor.execute(
-            "SELECT id_tournament, title FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
-        tournament = await tournament.fetchone()
-        await cursor.execute(
-            "DELETE FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
-        await connection.commit()
-        await cursor.execute(
-            "DELETE FROM tournament_participants WHERE id_tournament = ?", (id,))
-        await cursor.execute("DELETE FROM authorized_starters WHERE id_tournament = ?", (id,))
-        await connection.commit()
-        await db_close(connection)
+        async with self.client.pool.acquire() as con:
+            deleted_tournament = await con.fetch('''
+            SELECT id_tournament, title FROM tournaments WHERE guild_id = $1 AND id_tournament = $2
+            ''', ctx.guild.id, id)
+            await con.execute('''
+            DELETE FROM tournaments WHERE guild_id = $1 AND id_tournament = $2
+            ''', ctx.guild.id, id)
+            await con.execute('''
+            DELETE FROM tournament_participants
+            WHERE id_tournament = $1
+            ''', id)
+            await con.execute('''
+            DELETE FROM authorized_starters
+            WHERE id_tournament = $1
+            ''', id)
 
         embed = discord.Embed(
             title="Tournoi supprimé", timestamp=datetime.datetime.utcnow(), color=discord.Color.red())
         embed.add_field(
-            name=tournament[1].title(), value=f"`{tournament[0]}`")
+            name=deleted_tournament[0].get('title').title(), value=f"`{deleted_tournament[0].get('id_tournament')}`")
         embed.set_footer(
             text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
 
@@ -753,30 +555,33 @@ class Games(commands.Cog):
     @ tournoi.command(name="leave", brief="Quitter un tournoi", usage="<id_du_tournoi>")
     async def leave(self, ctx: commands.Context):
 
-        connection, cursor = await db_connect()
-
         embed = discord.Embed(
             title="Quitter un Tournoi", timestamp=datetime.datetime.utcnow(), color=discord.Color.orange())
         embed.set_footer(
             text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
 
-        current_tournament = await cursor.execute(
-            "SELECT DISTINCT id_tournament, id_participant FROM tournament_participants WHERE id_participant = ?", (ctx.author.id,))
-        current_tournament = await current_tournament.fetchone()
+        async with self.client.pool.acquire() as con:
 
-        if not current_tournament:
-            embed.description = f"Vous n'êtes actuellement inscrit à aucun tournoi {ctx.author.mention}."
+            current_tournament = await con.execute('''
+            SELECT DISTINCT id_tournament, id_participant 
+            FROM tournament_participants
+            WHERE id_participant = $1
+            ''', ctx.author.id)
 
-        await cursor.execute(
-            "DELETE FROM tournament_participants WHERE id_participant = ?", (ctx.author.id,))
-        await cursor.execute("UPDATE tournament_participants SET score = 0 WHERE id_participant = ?", (ctx.author.id,))
-        await connection.commit()
-        tournament = await cursor.execute(
-            "SELECT title FROM tournaments WHERE id_tournament = ?", (current_tournament[0],))
-        tournament = await tournament.fetchone()
-        await db_close(connection)
+            if not current_tournament:
+                embed.description = f"Vous n'êtes actuellement inscrit à aucun tournoi {ctx.author.mention}."
 
-        embed.description = f"Vous venez de quitter le tournoi __**{tournament[0].title()}**__ {ctx.author.mention}!"
+            else:
+                await con.execute('''
+                DELETE FROM tournament_participants
+                WHERE id_participant = $1
+                ''', ctx.author.id)
+                tournament = await con.execute('''
+                SELECT title FROM tournaments
+                WHERE id_tournament = $1
+                ''', current_tournament[0].get('id_tournament'))
+
+                embed.description = f"Vous venez de quitter le tournoi __**{tournament[0].title()}**__ {ctx.author.mention}!"
 
         await ctx.send(embed=embed)
 
@@ -1098,23 +903,6 @@ class Games(commands.Cog):
             embed.description = "Il n'y a pas de gagnant comme il n'y avait aucun participant !"
 
         await message.edit(embed=embed)
-
-    # Errors
-
-    @chat.error
-    async def on_chat_error(self, ctx: commands.Context, error):
-        msg = f"{error} dans le serveur {ctx.guild.name}(salon: {ctx.channel.name})"
-        write_file(
-            log_file, msg, is_log=True)
-        await get_log_channel(self.client, ctx, msg)
-        if isinstance(error, discord.ext.commands.CommandInvokeError):
-            await ctx.send("*No Entry*")
-            etype = type(error)
-            trace = error.__traceback__
-            verbosity = 4
-            lines = traceback.format_exception(etype, error, trace, verbosity)
-            traceback_text = ''.join(lines)
-            print(traceback_text)
 
 
 def setup(client):
