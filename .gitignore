@@ -1,4 +1,11 @@
 .git
 .env
-./run-bot.sh
+run-bot.sh
 tests
+logs
+__pycache__
+.idea
+.vscode
+.google-cookie
+.python-version
+dogsbot.log
