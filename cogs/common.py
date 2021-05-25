@@ -1,20 +1,19 @@
 import asyncio
+from logging import error
 from math import log
 from discord.embeds import EmptyEmbed
 
 from discord.errors import ClientException
-from events.functions import write_file
+from events.functions import *
 from discord.ext import commands
 from discord.ext.commands.errors import CommandInvokeError, MissingRequiredArgument
 from googlesearch import search
-from discord import Embed, Colour
-import datetime
+from discord import Embed, Colour, Color
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 from googletrans import Translator, LANGUAGES
 import pythonping
-
-from events.functions import *
 
 
 class Common(commands.Cog):
@@ -233,24 +232,30 @@ class Common(commands.Cog):
 
     @commands.group(name="lanplay", aliases=["lan"], brief="Afficher les serveurs Lan-Play", description=f"Indiquez le serveur dont vous voulez afficher les informations, par exemple lanplay.reboot.ms:11451\nPour afficher la liste des serveurs disponibles, tapez la commande `lanplay list`", usage="<url>", invoke_without_command=True)
     async def lanplay(self, ctx: commands.Context, *, url: str = "switch.lan-play.com:11451"):
-        embed = discord.Embed(
-            title=url, timestamp=datetime.utcnow(), color=discord.Color.red())
+        embed = Embed(
+            title=url, timestamp=datetime.utcnow(), color=Color.red())
 
         if not url.startswith("http://"):
-            url = f"http://{url}/"
+            url_formated = f"http://{url}/"
+        else:
+            url_formated = url
+        
+        if len(url_formated.split(":")) != 3:
+            embed.title = None
+            embed.description = f"Vous avez oublié d'indiquer le port d'écoute du serveur `{url}`, veuillez l'indiquer de la manière suivante (remplacer `11451` par le port du serveur):\n`{url}:11451`"
+            return await ctx.send(embed=embed)
 
-        url_formated = url.replace(
-            "http://", "").replace("/", "").split(":")[0]
+
+        ping_url = url_formated.replace("http://", "").replace("/", "").split(":")[0]
         try:
-            ping = f"{pythonping.ping(url_formated, out=None).rtt_avg_ms} ms"
+            ping = f"{pythonping.ping(ping_url, out=None).rtt_avg_ms} ms"
         except:
             ping = None
         async with ctx.channel.typing():
             try:
-                lanplay_status = await getLanplayStatus(url)
+                lanplay_status = await getLanplayStatus(url_formated)
             except:
                 embed.title = None
-                embed.set_thumbnail(url=EmptyEmbed)
                 embed.description = "Une erreur est survenue, veuillez réessayer plus tard ou vérifiez d'avoir correctement écrit le nom du serveur.\nPar exemple `switch.lan-play.com:11451` et pas `switch.lan-play.com`."
                 embed.set_footer(
                     text=f"Ping: {ping}", icon_url=ctx.guild.icon_url)
@@ -280,8 +285,8 @@ class Common(commands.Cog):
     @ lanplay.command(name="list", aliases=["liste"], brief="Liste des serveurs Lan-Play", description="Envoie en message privé la liste des serveurs disponibles")
     @commands.cooldown(rate=1, per=10.0)
     async def list(self, ctx: commands.Context):
-        embed = discord.Embed(title="Liste des serveurs Lan-Play",
-                              color=discord.Color.blue(), timestamp=datetime.utcnow())
+        embed = Embed(title="Liste des serveurs Lan-Play",
+                              color=Color.blue(), timestamp=datetime.utcnow())
         embed.description = f"Copiez le nom du serveur dont vous souhaitez obtenir des infos puis tapez la commande `{ctx.prefix}{ctx.command.root_parent} <nom_du_serveur>` (en remplacant \"<nom_du_serveur>\" par un des noms ci-dessous) pour obtenir les infos de ce serveur. *Voir l'exemple tout en bas*"
 
         servers_list = [
