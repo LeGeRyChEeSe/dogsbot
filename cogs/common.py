@@ -241,21 +241,24 @@ class Common(commands.Cog):
 
         url_formated = url.replace(
             "http://", "").replace("/", "").split(":")[0]
-
-        ping = pythonping.ping(url_formated, out=None)
-
+        try:
+            ping = f"{pythonping.ping(url_formated, out=None).rtt_avg_ms} ms"
+        except:
+            ping = None
         async with ctx.channel.typing():
             try:
                 lanplay_status = await getLanplayStatus(url)
             except:
                 embed.title = None
                 embed.set_thumbnail(url=EmptyEmbed)
-                embed.description = "Une erreur est survenue, merci de réessayer plus tard."
+                embed.description = "Une erreur est survenue, veuillez réessayer plus tard ou vérifiez d'avoir correctement écrit le nom du serveur.\nPar exemple `switch.lan-play.com:11451` et pas `switch.lan-play.com`."
+                embed.set_footer(
+                    text=f"Ping: {ping}", icon_url=ctx.guild.icon_url)
                 return await ctx.send(embed=embed)
 
             embed.description = f"{lanplay_status['serverInfo']['online']} :video_game: / {lanplay_status['serverInfo']['idle']} :zzz:"
             embed.set_footer(
-                text=f"Ping: {ping.rtt_avg_ms} ms", icon_url=ctx.guild.icon_url)
+                text=f"Ping: {ping}", icon_url=ctx.guild.icon_url)
 
             for room in lanplay_status["room"]:
                 nb_players_room = f"{room['nodeCount']}/{room['nodeCountMax']}"

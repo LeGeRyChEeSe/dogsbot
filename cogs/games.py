@@ -43,14 +43,14 @@ class Games(commands.Cog):
                 return False
         return inner
 
-    async def check_authorized_starters(self, ctx: commands.Context, id_tournament: int):
+    async def check_authorized_starters(self, ctx: commands.Context, tournament_id: int):
 
         async with self.client.pool.acquire() as con:
             authorized_starters = await con.fetch('''
             SELECT id_starter, is_role
             FROM authorized_starters
-            WHERE id_tournament = $1
-            ''', id_tournament)
+            WHERE tournament_id = $1
+            ''', tournament_id)
 
         print(authorized_starters)
 
@@ -285,20 +285,20 @@ class Games(commands.Cog):
 
         async with self.client.pool.acquire() as con:
             tournaments = await con.fetch('''
-            SELECT id_tournament, title, date, nb_max_participants, nb_participants
+            SELECT tournament_id, title, date, nb_max_participants, nb_participants
             FROM tournaments
             WHERE guild_id = $1
             ''', ctx.guild.id)
 
         for tournament in tournaments:
             embed.add_field(
-                name=tournament.get('title').title(), value=f"__**ID:**__ `{tournament.get('id_tournament')}`\n__**Date début:**__ {tournament.get('date')}")
+                name=tournament.get('title').title(), value=f"__**ID:**__ `{tournament.get('tournament_id')}`\n__**Date début:**__ {tournament.get('date')}")
 
         # Check if ctx.author is registered into a tournament
 
         async with self.client.pool.acquire() as con:
             into_tournament = await con.fetch('''
-            SELECT DISTINCT id_participant, id_tournament
+            SELECT DISTINCT id_participant, tournament_id
             FROM tournament_participants
             WHERE id_participant = $1
             ''', ctx.author.id)
@@ -307,15 +307,15 @@ class Games(commands.Cog):
 
             for i in tournaments:
 
-                if into_tournament[0].get('id_tournament') == i.get('id_tournament'):
+                if into_tournament[0].get('tournament_id') == i.get('tournament_id'):
                     # We fetch the current tournament were the member participate
 
                     async with self.client.pool.acquire() as con:
                         current_tournament = await con.fetch('''
-                        SELECT id_tournament, title
+                        SELECT tournament_id, title
                         FROM tournaments
-                        WHERE guild_id = $1 AND id_tournament = $2
-                        ''', ctx.guild.id, into_tournament[0].get('id_tournament'))
+                        WHERE guild_id = $1 AND tournament_id = $2
+                        ''', ctx.guild.id, into_tournament[0].get('tournament_id'))
 
                     embed.add_field(name=f":white_check_mark: Vous êtes inscrit au tournoi {current_tournament[0].get('title').title()} :white_check_mark: ",
                                     value=f"`{current_tournament[0]}`", inline=False)
@@ -336,9 +336,9 @@ class Games(commands.Cog):
 
             async with self.client.pool.acquire() as con:
                 new_tournament = await con.fetch('''
-                SELECT DISTINCT id_tournament, title, nb_max_participants, nb_participants
+                SELECT DISTINCT tournament_id, title, nb_max_participants, nb_participants
                 FROM tournaments
-                WHERE guild_id = $1 AND id_tournament = $2
+                WHERE guild_id = $1 AND tournament_id = $2
                 ''', ctx.guild.id, new_participant.content)
 
             if not new_tournament:
@@ -354,16 +354,16 @@ class Games(commands.Cog):
             async with self.client.pool.acquire() as con:
                 already_registered = await con.fetch('''
                 SELECT DISTINCT id FROM tournament_participants
-                WHERE id_tournament = $1 AND id_participant = $2
-                ''', new_tournament[0].get('id_tournament'), ctx.author.id)
+                WHERE tournament_id = $1 AND id_participant = $2
+                ''', new_tournament[0].get('tournament_id'), ctx.author.id)
             # If ctx.author is registered into a new_tournament
             if into_tournament:
                 async with self.client.pool.acquire() as con:
                     current_tournament = await con.fetch('''
                     SELECT DISTINCT nb_participants
                     FROM tournaments
-                    WHERE id_tournament = $1
-                    ''', into_tournament[0].get('id_tournament'))
+                    WHERE tournament_id = $1
+                    ''', into_tournament[0].get('tournament_id'))
 
             elif new_tournament[0].get('nb_max_participants') == new_tournament[0].get('nb_participants'):
                 embed.color = discord.Color.red()
@@ -375,22 +375,22 @@ class Games(commands.Cog):
 
             async with self.client.pool.acquire() as con:
                 await con.execute('''
-                INSERT INTO tournament_participants(id_tournament, id_participant)
+                INSERT INTO tournament_participants(tournament_id, id_participant)
                 VALUES($1, $2)
-                ''', new_tournament[0].get('id_tournament'), ctx.author.id)
+                ''', new_tournament[0].get('tournament_id'), ctx.author.id)
 
                 await con.execute('''
                 UPDATE tournaments
                 SET nb_participants = $1
-                WHERE id_tournament = $2
-                ''', new_tournament[0].get('nb_participants')+1, new_tournament[0].get('id_tournament'))
+                WHERE tournament_id = $2
+                ''', new_tournament[0].get('nb_participants')+1, new_tournament[0].get('tournament_id'))
 
                 if into_tournament != None:
                     await con.execute('''
                     UPDATE tournaments
                     SET nb_participants = $1
-                    WHERE id_tournament = $2
-                    ''', current_tournament[0].get('nb_participants')-1, into_tournament[0].get('id_tournament'))
+                    WHERE tournament_id = $2
+                    ''', current_tournament[0].get('nb_participants')-1, into_tournament[0].get('tournament_id'))
             embed.description = f"Félicitations {ctx.author.mention}, vous vous êtes inscrit au tournoi __**{new_tournament[1].title()}**__\n\n*Pour changer de tournoi, vous pouvez simplement taper l'id d'un autre tournoi (après avoir tapé la commande `{ctx.prefix}tournoi`) ou taper la commande `{ctx.prefix}tournoi leave` pour quitter le tournoi auquel vous êtes actuellement inscrit!*"
 
         await message.edit(embed=embed)
@@ -402,13 +402,13 @@ class Games(commands.Cog):
         names = {"title": "Nom du tournoi", "description": "Description du tournoi *(par défaut: `NONE`)*", "rules": "Règles du tournoi", "reward": "Récompense du tournoi *(par défaut: `NONE`)*",
                  "date": "Date/Heure du début du tournoi *(Format de la date : `jj/mm/aa HH:MM` Ex: `25/06/21 15:00`)*", "nb_max_participants": "Nombre maximum de participants *(par défaut: `8`)*", "authorized_starters": f"Membres ou/et rôles autorisés à démarrer un tournoi, l'arrêter et modifier le classement *(par défaut: {ctx.author.mention})*", "rounds": "Nombre de manches du tournoi *(par défaut: `4`)*"}
 
-        id_tournament = random_string(8)
+        tournament_id = random_string(8)
 
         async with self.client.pool.acquire() as con:
             await con.execute('''
-            INSERT INTO tournaments(guild_id, id_tournament)
+            INSERT INTO tournaments(guild_id, tournament_id)
             VALUES($1, $2)
-            ''', ctx.guild.id, id_tournament)
+            ''', ctx.guild.id, tournament_id)
 
         embed = discord.Embed(
             title="Tournoi créé", timestamp=datetime.datetime.utcnow(), color=discord.Color.greyple())
@@ -473,7 +473,7 @@ class Games(commands.Cog):
         async with self.client.pool.acquire() as con:
             # Création du tournoi si celui-ci n'existe pas déjà
             await con.execute('''
-            INSERT INTO tournaments(guild_id, id_tournament, title, description, rules, reward, date, nb_max_participants, rounds)
+            INSERT INTO tournaments(guild_id, tournament_id, title, description, rules, reward, date, nb_max_participants, rounds)
             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (title)
             DO UPDATE
@@ -484,13 +484,13 @@ class Games(commands.Cog):
             date = $7,
             nb_max_participants = $8,
             rounds = $9
-            WHERE tournaments.guild_id = $1 AND tournaments.id_tournament = $2
-            ''', ctx.guild.id, id_tournament, temp_response["title"], temp_response["description"], temp_response["rules"], temp_response["reward"], temp_response["date"], temp_response["nb_max_participants"], temp_response["rounds"])
+            WHERE tournaments.guild_id = $1 AND tournaments.tournament_id = $2
+            ''', ctx.guild.id, tournament_id, temp_response["title"], temp_response["description"], temp_response["rules"], temp_response["reward"], temp_response["date"], temp_response["nb_max_participants"], temp_response["rounds"])
 
             for mention in temp_response["authorized_starters"]:
                 await con.execute('''
-                INSERT INTO authorized_starters(id_tournament, id_starter, is_role) VALUES($1, $2, $3)
-                ''', id_tournament, mention[0], mention[1])
+                INSERT INTO authorized_starters(tournament_id, id_starter, is_role) VALUES($1, $2, $3)
+                ''', tournament_id, mention[0], mention[1])
 
         embed.set_footer(
             text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
@@ -526,24 +526,24 @@ class Games(commands.Cog):
 
         async with self.client.pool.acquire() as con:
             deleted_tournament = await con.fetch('''
-            SELECT id_tournament, title FROM tournaments WHERE guild_id = $1 AND id_tournament = $2
+            SELECT tournament_id, title FROM tournaments WHERE guild_id = $1 AND tournament_id = $2
             ''', ctx.guild.id, id)
             await con.execute('''
-            DELETE FROM tournaments WHERE guild_id = $1 AND id_tournament = $2
+            DELETE FROM tournaments WHERE guild_id = $1 AND tournament_id = $2
             ''', ctx.guild.id, id)
             await con.execute('''
             DELETE FROM tournament_participants
-            WHERE id_tournament = $1
+            WHERE tournament_id = $1
             ''', id)
             await con.execute('''
             DELETE FROM authorized_starters
-            WHERE id_tournament = $1
+            WHERE tournament_id = $1
             ''', id)
 
         embed = discord.Embed(
             title="Tournoi supprimé", timestamp=datetime.datetime.utcnow(), color=discord.Color.red())
         embed.add_field(
-            name=deleted_tournament[0].get('title').title(), value=f"`{deleted_tournament[0].get('id_tournament')}`")
+            name=deleted_tournament[0].get('title').title(), value=f"`{deleted_tournament[0].get('tournament_id')}`")
         embed.set_footer(
             text=f"Tapez la commande {ctx.prefix}tournoi pour voir les tournois créés.", icon_url=ctx.author.avatar_url)
 
@@ -563,7 +563,7 @@ class Games(commands.Cog):
         async with self.client.pool.acquire() as con:
 
             current_tournament = await con.execute('''
-            SELECT DISTINCT id_tournament, id_participant 
+            SELECT DISTINCT tournament_id, id_participant 
             FROM tournament_participants
             WHERE id_participant = $1
             ''', ctx.author.id)
@@ -578,8 +578,8 @@ class Games(commands.Cog):
                 ''', ctx.author.id)
                 tournament = await con.execute('''
                 SELECT title FROM tournaments
-                WHERE id_tournament = $1
-                ''', current_tournament[0].get('id_tournament'))
+                WHERE tournament_id = $1
+                ''', current_tournament[0].get('tournament_id'))
 
                 embed.description = f"Vous venez de quitter le tournoi __**{tournament[0].title()}**__ {ctx.author.mention}!"
 
@@ -589,7 +589,7 @@ class Games(commands.Cog):
     async def more(self, ctx: commands.Context):
 
         names = {"title": "Nom du tournoi", "description": "Description du tournoi", "date": "Date du début du tournoi", "rounds": "Nombre de manches avant de savoir qui a gagné le tournoi !", "reward": "Récompense du tournoi",
-                 "nb_max_participants": "Nombre maximum de participants", "nb_participants": "Nombre actuel de participants", "start": "Tournoi commencé", "finish": "Tournoi terminé", "id_tournament": "Identifiant unique du tournoi"}
+                 "nb_max_participants": "Nombre maximum de participants", "nb_participants": "Nombre actuel de participants", "start": "Tournoi commencé", "finish": "Tournoi terminé", "tournament_id": "Identifiant unique du tournoi"}
 
         embed = discord.Embed(timestamp=datetime.datetime.utcnow(),
                               color=discord.Color.greyple())
@@ -611,7 +611,7 @@ class Games(commands.Cog):
         connection, cursor = await db_connect()
 
         tournament_check = await cursor.execute(
-            "SELECT DISTINCT title FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+            "SELECT DISTINCT title FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         tournament_check = await tournament_check.fetchone()
 
         if tournament_check == None:
@@ -623,7 +623,7 @@ class Games(commands.Cog):
 
         for key, value in names.items():
             details_tournament = await cursor.execute(
-                f"SELECT DISTINCT {key} FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+                f"SELECT DISTINCT {key} FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
             details_tournament = (await details_tournament.fetchone())[0]
             embed.add_field(
                 name=value, value=details_tournament, inline=False)
@@ -659,12 +659,12 @@ class Games(commands.Cog):
 
         connection, cursor = await db_connect()
 
-        # tournament = [id_tournament, title, description, reward, nb_participants, start, finish]
+        # tournament = [tournament_id, title, description, reward, nb_participants, start, finish]
         tournament = await cursor.execute(
-            "SELECT id_tournament, title, description, reward, nb_participants, start, finish, rounds FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+            "SELECT tournament_id, title, description, reward, nb_participants, start, finish, rounds FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         tournament = await tournament.fetchone()
 
-        tournament_participants = await cursor.execute("SELECT id_participant FROM tournament_participants WHERE id_tournament = ?", (tournament[0],))
+        tournament_participants = await cursor.execute("SELECT id_participant FROM tournament_participants WHERE tournament_id = ?", (tournament[0],))
         tournament_participants = await tournament_participants.fetchall()
 
         await db_close(connection)
@@ -700,7 +700,7 @@ class Games(commands.Cog):
 
         connection, cursor = await db_connect()
 
-        await cursor.execute("UPDATE tournaments SET start = 1 WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, tournament[0]))
+        await cursor.execute("UPDATE tournaments SET start = 1 WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, tournament[0]))
         await connection.commit()
         await db_close(connection)
 
@@ -734,12 +734,12 @@ class Games(commands.Cog):
             id = id.content
             embed.description = None
 
-        # tournament = [id_tournament, title, description, reward, nb_participants, start, finish]
+        # tournament = [tournament_id, title, description, reward, nb_participants, start, finish]
         tournament = await cursor.execute(
-            "SELECT id_tournament, title, description, reward, nb_participants, start, finish, rounds, classement FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+            "SELECT tournament_id, title, description, reward, nb_participants, start, finish, rounds, classement FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         tournament = await tournament.fetchone()
 
-        tournament_participants = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE id_tournament = ?", (tournament[0],))
+        tournament_participants = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE tournament_id = ?", (tournament[0],))
         tournament_participants = await tournament_participants.fetchall()
 
         if tournament == None:
@@ -802,12 +802,12 @@ class Games(commands.Cog):
 
         connection, cursor = await db_connect()
 
-        # tournament = [id_tournament, title, description, reward, nb_participants, start, finish]
+        # tournament = [tournament_id, title, description, reward, nb_participants, start, finish]
         tournament = await cursor.execute(
-            "SELECT id_tournament, title, description, reward, nb_participants, start, finish, rounds FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+            "SELECT tournament_id, title, description, reward, nb_participants, start, finish, rounds FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         tournament = await tournament.fetchone()
 
-        tournament_participants = await cursor.execute("SELECT id_participant FROM tournament_participants WHERE id_tournament = ?", (tournament[0],))
+        tournament_participants = await cursor.execute("SELECT id_participant FROM tournament_participants WHERE tournament_id = ?", (tournament[0],))
         tournament_participants = await tournament_participants.fetchall()
         await db_close(connection)
 
@@ -841,15 +841,15 @@ class Games(commands.Cog):
                 await cursor.execute("UPDATE tournament_participants SET score = score + ? WHERE id_participant = ?", (tournament[4] - (participants_mentions.index(participant)), participant.id))
             await connection.commit()
 
-            participants_scores = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE id_tournament = ?", (tournament[0],))
+            participants_scores = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE tournament_id = ?", (tournament[0],))
             participants_scores = await participants_scores.fetchall()
             participants_scores = sorted(
                 participants_scores, key=lambda x: x[1], reverse=True)
 
-            await cursor.execute("UPDATE tournaments SET classement = ? WHERE guild_id = ? AND id_tournament = ?", ("\n".join(f"__**{participants_scores.index(p)+1} place:**__ <@{p[0]}> (*score:* `{p[1]}`" for p in participants_scores), ctx.guild.id, tournament[0]))
+            await cursor.execute("UPDATE tournaments SET classement = ? WHERE guild_id = ? AND tournament_id = ?", ("\n".join(f"__**{participants_scores.index(p)+1} place:**__ <@{p[0]}> (*score:* `{p[1]}`" for p in participants_scores), ctx.guild.id, tournament[0]))
             await connection.commit()
 
-            leaderboard = await cursor.execute("SELECT classement FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, tournament[0]))
+            leaderboard = await cursor.execute("SELECT classement FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, tournament[0]))
             leaderboard = await leaderboard.fetchone()
             await db_close(connection)
 
@@ -884,13 +884,13 @@ class Games(commands.Cog):
 
         connection, cursor = await db_connect()
 
-        tournament = await cursor.execute("SELECT id_tournament, title, reward, classement FROM tournaments WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+        tournament = await cursor.execute("SELECT tournament_id, title, reward, classement FROM tournaments WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         tournament = await tournament.fetchone()
 
-        await cursor.execute("UPDATE tournaments SET start = 0, finish = 1 WHERE guild_id = ? AND id_tournament = ?", (ctx.guild.id, id))
+        await cursor.execute("UPDATE tournaments SET start = 0, finish = 1 WHERE guild_id = ? AND tournament_id = ?", (ctx.guild.id, id))
         await connection.commit()
 
-        participants = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE id_tournament = ?", (id,))
+        participants = await cursor.execute("SELECT id_participant, score FROM tournament_participants WHERE tournament_id = ?", (id,))
         participants = await participants.fetchall()
         await db_close(connection)
 

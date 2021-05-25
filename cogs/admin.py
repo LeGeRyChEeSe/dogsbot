@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
 from traceback import format_exception
-from PIL import Image, ImageFont, ImageDraw
 from io import BytesIO
 
 import discord
@@ -530,9 +529,9 @@ class Admin(commands.Cog):
             await con.execute('''
             INSERT INTO welcome(guild_id, welcome_channel_id)
             VALUES($1, $2)
-            ON CONFLICT (welcome_channel_id)
+            ON CONFLICT (guild_id)
             DO UPDATE
-            SET welcome.welcome_channel_id = $2
+            SET welcome_channel_id = $2
             WHERE welcome.guild_id = $1
             ''', ctx.guild.id, welcome_channel_id)
 
@@ -553,7 +552,7 @@ class Admin(commands.Cog):
             VALUES($1, $2)
             ON CONFLICT (guild_id)
             DO UPDATE
-            SET welcome.welcome_message = $2
+            SET welcome_message = $2
             WHERE welcome.guild_id = $1
             ''', ctx.guild.id, welcome_message)
 

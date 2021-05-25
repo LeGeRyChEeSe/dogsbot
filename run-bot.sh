@@ -1,8 +1,8 @@
 #!/bin/sh
-pgrep -f "SCREEN -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/BOTS/dogsbot/main.py"
+pgrep -f "SCREEN -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/bots/dogsbot/main.py"
 
 if [ $? -eq 1 ]
 then
-cd /home/kilian/BOTS/dogsbot/
-screen -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/BOTS/dogsbot/main.py
+cd /home/kilian/bots/dogsbot/
+screen -dmS dogsbot /home/kilian/.pyenv/versions/dogsbot/bin/python /home/kilian/bots/dogsbot/main.py
 fi

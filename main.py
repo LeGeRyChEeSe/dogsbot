@@ -31,7 +31,7 @@ intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix=get_prefixes, intents=intents)
 client.pool = client.loop.run_until_complete(asyncpg.create_pool(
-    host="stain.ddns.net", user="kilian", password="LeGeRyChEeSe41400", database="dogsbot"))
+    host="stain.ddns.net", user="kilian", password="WebReveuse41400", database="dogsbot"))
 
 
 # Events
@@ -46,13 +46,17 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member: discord.Member):
-    connection, cursor = await db_connect()
-    welcome = await(await cursor.execute(
-        "SELECT welcome_channel_id, welcome_message FROM welcome WHERE guild_id = ?", (member.guild.id,))).fetchone()
+
+    async with client.pool.acquire() as con:
+        welcome = await con.fetch('''
+        SELECT welcome_channel_id, welcome_message
+        FROM welcome
+        WHERE guild_id = $1
+        ''', member.guild.id)
 
     if welcome:
-        welcome_channel_id = welcome[0]
-        welcome_message = welcome[1]
+        welcome_channel_id = welcome[0].get("welcome_channel_id")
+        welcome_message = welcome[0].get("welcome_message")
         welcome_channel = client.get_channel(int(welcome_channel_id))
         embed = discord.Embed()
         embed.title = f"Bienvenue {member.display_name}#{member.discriminator}!"
@@ -63,8 +67,6 @@ async def on_member_join(member: discord.Member):
         embed.description = welcome_message.replace("$member", member.mention)
         embed.timestamp = datetime.utcnow()
         await welcome_channel.send(embed=embed)
-
-    await db_close(connection)
 
     write_file(
         set_file_logs(member.guild.id), f"{member} a rejoint le serveur!", is_log=True)
