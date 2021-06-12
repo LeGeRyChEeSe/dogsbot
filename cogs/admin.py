@@ -159,7 +159,7 @@ class Admin(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx: commands.Context, amount=5):
         sure = await ctx.reply(
-            "Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal (**o**/**n**)?")
+            f"Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal (**o**/**n**)?")
         try:
             message = await self.client.wait_for("message", check=self.check_author(ctx), timeout=60.0)
         except asyncio.TimeoutError:
