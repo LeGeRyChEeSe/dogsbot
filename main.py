@@ -120,17 +120,17 @@ async def on_command_error(ctx: commands.Context, error):
         return reaction.user_id == ctx.author.id and reaction.emoji.name == "\U0001f197"
 
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"Veuillez entrer le nombre d'arguments nécessaires à la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
+        await ctx.reply(f"Veuillez entrer le nombre d'arguments nécessaires à la commande `{ctx.prefix}{ctx.command.qualified_name}`.")
     elif isinstance(error, commands.CommandNotFound):
-        await ctx.send(f"La commande `{ctx.message.content}` n'existe pas {ctx.author.mention}")
+        await ctx.reply(f"La commande `{ctx.message.content}` n'existe pas {ctx.author.mention}")
     elif isinstance(error, commands.MissingPermissions):
-        await ctx.send(f"Vous n'avez pas les permissions nécessaires pour éxecuter la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
+        await ctx.reply(f"Vous n'avez pas les permissions nécessaires pour éxecuter la commande `{ctx.prefix}{ctx.command.qualified_name}`.")
     elif isinstance(error, discord.errors.Forbidden):
-        await ctx.send(f"Je n'ai pas les permissions nécessaires pour exécuter la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
+        await ctx.reply(f"Je n'ai pas les permissions nécessaires pour exécuter la commande `{ctx.prefix}{ctx.command.qualified_name}`.")
     elif isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"Veuillez patienter encore {round(error.retry_after)} secondes avant de pouvoir utiliser la commande `{ctx.prefix}{ctx.command.qualified_name}`, {ctx.author.mention}")
+        await ctx.reply(f"Veuillez patienter encore {round(error.retry_after)} secondes avant de pouvoir utiliser la commande `{ctx.prefix}{ctx.command.qualified_name}`.")
     elif isinstance(error, StringDataRightTruncationError):
-        await ctx.send("Veuillez entrer un préfix de commande inférieur ou égal à 5 caractères, {ctx.author.mention}")
+        await ctx.reply("Veuillez entrer un préfix de commande inférieur ou égal à 5 caractères.")
     else:
         etype = type(error)
         trace = error.__traceback__

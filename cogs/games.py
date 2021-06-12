@@ -1,13 +1,12 @@
 from os import error
 import asyncio
-import random
+import asyncpg
+from random import choice
 import traceback
 
 import discord
 from discord.ext import commands
 from events.functions import *
-
-from assets.Games.Pendu.pendu import *
 
 
 class Games(commands.Cog):
@@ -83,195 +82,116 @@ class Games(commands.Cog):
                      "T'a du cran de poser cette question gamin, aller retourne trier tes cailloux.",
                      "Ah, ça je sais pas! Faut voir ça avec mon supérieur! <@!705704133877039124>"]
 
-        await ctx.send(f"{random.choice(responses)}")
+        await ctx.send(f"{choice(responses)}")
 
-    @commands.command(name="pendu", brief="Jouez au pendu!",
-                      description="""Règles:
-                      - Vous avez 8 chances pour trouver un mot pioché aléatoirement!
-                      - Après avoir écrit la commande, tapez simplement la lettre que vous pensez qui est dans le mot.
-                      - Pour quitter le jeu, écrivez simplement 'exit'.
+    @commands.group(name="pendu", brief="Jouez au Pendu!", description="Jouez simplement au célèbre jeu du Pendu!", invoke_without_command=True)
+    async def pendu(self, ctx: commands.Context):
+        await ctx.reply(f"Pour jouer au Pendu, tapez `{ctx.prefix}pendu play`\nPour ajouter un mot à la base de données du Pendu, tapez `{ctx.prefix}pendu add` suivis de votre mot, par exemple: `{ctx.prefix}pendu add corde`")
 
-                      - Optionnel:
-                        - Vous pouvez ajouter plusieurs mots de votre choix (maximum 25 lettres dans un mot et sans espaces) avec la syntaxe 'pendu add <nouveau_mot_1> <nouveau_mot_2> <nouveau_mot_n> etc.'.
-                        - Vous pouvez choisir la taille max du mot à deviner avec la syntaxe 'pendu taille <nombre_entre_3_et_25_inclus>'""",
-                      usage='[add <nouveau_mot> | <nouveau_mot_1> <nouveau_mot_2> ... | taille <nombre_entre_3_et_25_inclus>]')
-    async def pendu(self, ctx: commands.Context, *add_word):
-        async with ctx.channel.typing():
-            await ctx.message.delete()
+    @pendu.command(name="play", aliases=["jouer", "p"])
+    async def play(self, ctx: commands.Context):
+        async with self.client.pool.acquire() as con:
+            word = await con.fetch('''
+            SELECT word
+            FROM pendu
+            ORDER BY random()
+            LIMIT 1
+            ''')
 
-            from assets.Games.Pendu.fonctions import insert_into_pendu
+        word = word[0].get("word")
+        hidden_word = ""
+        is_word_found = False
+        is_over = False
+        used_letters = []
+        tentatives = 8
 
-            connection, cursor = await db_connect()
+        for _ in word:
+            hidden_word += "_"
 
-            if len(add_word) > 0:
-                if add_word[0] == "add" and len(add_word) == 2:
-                    if await insert_into_pendu(connection, cursor, add_word[1].lower()):
-                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` a bien été ajoutés parmis tous les autres mots!")
-                        msg = f"{ctx.author.name}#{ctx.author.discriminator} a ajouté le mot {add_word[1]} dans la table pendu"
-                        write_file(
-                            set_file_logs(ctx.guild.id), msg, is_log=True)
-                        await get_log_channel(self.client, ctx, msg)
+        hidden_word = " ".join(letter for letter in hidden_word)
 
-                    else:
-                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` existe déjà dans ma base de données!")
+        embed = discord.Embed(colour=discord.Color.magenta(), timestamp=datetime.datetime.now())
+        embed.set_footer(text=ctx.author, icon_url=ctx.guild.icon_url)
+        embed.set_author(name=hidden_word.upper())
+        embed.add_field(name="Tentatives restantes", value=8)
+        embed.add_field(name="Lettres utilisées", value="Aucune")
 
-                    return await db_close(connection)
 
-                elif add_word[0] == "add" and len(add_word) > 2:
-                    words = []
-                    words_already = []
+        pendu_message: discord.Message = await ctx.reply(embed=embed)
 
-                    for word in add_word[1:]:
-                        if await insert_into_pendu(connection, cursor, word.lower()):
-                            words.append(f"`{word}`")
-
-                        else:
-                            words_already.append(f"`{word}`")
-
-                    if words_already:
-                        if len(words_already) == 1:
-                            await ctx.send(f"{ctx.author.mention} Le mot {words_already[0]} existe déjà dans ma base de données!")
-
-                        else:
-                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words_already[0:-1])} et {words_already[-1]} existent déjà dans ma base de données!")
-
-                    if words:
-                        if len(words) == 1:
-                            await ctx.send(f"{ctx.author.mention} Le mot {words[0]} a bien été ajouté parmis tous les autres mots!")
-
-                        else:
-                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words[:-1])} et {words[-1]} ont bien été ajoutés parmis tous les autres mots!")
-
-                        msg = f"{ctx.author.name}#{ctx.author.discriminator} a ajouté les mots {words} dans la table pendu"
-                        write_file(
-                            set_file_logs(ctx.guild.id), msg, is_log=True)
-                        await get_log_channel(self.client, ctx, msg)
-
-                    return await db_close(connection)
-
-                elif add_word[0] == "del" and len(add_word) == 2 and ctx.channel.permissions_for(ctx.author).administrator:
-                    if delete_from_pendu(connection, cursor, add_word[1].lower()):
-                        await ctx.send(f"{ctx.author.mention} Le mot `{add_word[1]}` a bien été supprimé!")
-                        msg = f"{ctx.author.name}#{ctx.author.discriminator} a retiré le mot {add_word[1]} dans la table pendu"
-                        write_file(
-                            set_file_logs(ctx.guild.id), msg, is_log=True)
-                        await get_log_channel(self.client, ctx, msg)
-
-                    else:
-                        await ctx.send(
-                            f"{ctx.author.mention} Le mot {add_word[1]} n'existe pas dans ma base de données! Je ne peux donc pas le supprimer!")
-
-                    return await db_close(connection)
-
-                elif add_word[0] == "del" and len(add_word) > 2 and ctx.channel.permissions_for(ctx.author).administrator:
-                    words = []
-                    words_not_exists = []
-
-                    for word in add_word[1:]:
-                        if delete_from_pendu(connection, cursor, word.lower()):
-                            words.append(f"`{word}`")
-
-                        else:
-                            words_not_exists.append(f"`{word}`")
-
-                    if words_not_exists:
-                        if len(words_not_exists) == 1:
-                            await ctx.send(f"{ctx.author.mention} Le mot {words_not_exists[0]} n'existe pas dans ma base de données! Je ne peux donc pas le supprimer!")
-
-                        else:
-                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words_not_exists[0:-1])} et {words_not_exists[-1]} n'existent pas dans ma base de données! Je ne peux donc pas les supprimer!")
-
-                    if words:
-                        if len(words) == 1:
-                            await ctx.send(f"{ctx.author.mention} Le mot {words[0]} a bien été supprimé de la liste des mots!")
-
-                        else:
-                            await ctx.send(f"{ctx.author.mention} Les mots {', '.join(words[:-1])} et {words[-1]} ont bien été supprimés de la liste des mots!")
-
-                        msg = f"{ctx.author.name}#{ctx.author.discriminator} a ajouté les mots {words} dans la table pendu"
-                        write_file(
-                            set_file_logs(ctx.guild.id), msg, is_log=True)
-                        await get_log_channel(self.client, ctx, msg)
-
-                    return await db_close(connection)
-
-        set_pendu(self, ctx, connection, cursor)
-        user_pendu: Pendu = self.game_user[ctx.author.id]
-        set_taille_message = None
-
-        if len(add_word) > 0:
-            if add_word[0] == "taille" and int(add_word[1]) in range(3, 26, 1):
-                user_pendu.taille_mot = int(add_word[1])
-                set_taille_message = await ctx.send(f"{ctx.author.mention}Taille choisie: {int(add_word[1])}")
-                user_pendu.mot = word_init(
-                    connection, cursor, user_pendu.taille_mot)
-                user_pendu.chances = len(user_pendu.mot)
-
-            elif add_word[0] == "taille" and not int(add_word[1]) in range(3, 26, 1):
-                set_taille_message = await ctx.send(
-                    f"""{ctx.author.mention}`Taille invalide` (doit se situer entre 3 et 25)\nTaille du mot par défaut: `8`""")
-
-        await user_pendu.set_mot()
-
-        while user_pendu.is_running:
-
-            if not user_pendu.message_to_delete:
-                user_pendu.message_to_delete = await ctx.send(f"Veuillez entrer une lettre {ctx.author.mention}")
-
+        while not is_word_found and not is_over:
             try:
-                lettre = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
-
+                letter: discord.Message = await self.client.wait_for("message", check=self.check_author, timeout=120.0)
             except asyncio.TimeoutError:
-                await ctx.send(f"{ctx.author.mention} Temps écoulé!")
+                await pendu_message.delete()
+                is_over = True
                 break
-
             else:
-                if set_taille_message:
-                    await set_taille_message.delete()
-                    set_taille_message = None
+                letter_content = letter.content.strip().lower()
+                if len(letter_content) != 1:
+                    await letter.delete()
+                    continue
+            
+            if letter_content in word:
+                hidden_word = ""
 
-                if lettre.content == "exit":
-                    await user_pendu.message_to_delete.delete()
-                    await lettre.delete()
-                    user_pendu.is_running = False
-                    break
+                if letter_content not in used_letters:
+                    used_letters.append(letter_content)
+                    embed.set_field_at(1, name="Lettres utilisées", value=", ".join(used_letters).upper())
+                else:
+                    tentatives -= 1
+                    embed.set_field_at(0, name="Tentatives restantes", value=tentatives)
 
-            await user_pendu.message_to_delete.delete()
-            await lettre.delete()
+                for word_letter in word:
+                    if word_letter in used_letters:
+                        hidden_word += word_letter.upper()
+                    else:
+                        hidden_word += "_"
+                hidden_word = " ".join(letter_content for letter_content in hidden_word)
+                
+                embed.set_author(name=hidden_word)
+            else:
+                if letter_content not in used_letters:
+                    used_letters.append(letter_content)
+                    embed.set_field_at(1, name="Lettres utilisées", value=", ".join(used_letters).upper())
+                tentatives -= 1
+                embed.set_field_at(0, name="Tentatives restantes", value=tentatives)
 
-            await user_pendu.running(lettre.content.lower())
+            await pendu_message.edit(embed=embed)
+            await letter.delete()
 
-            if user_pendu.is_find or user_pendu.is_over:
-                try:
-                    user_quit = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+            if tentatives == 0:
+                is_over = True
+            elif word == hidden_word.replace(" ", ""):
+                is_word_found = True
+        
+        if is_over:
+            embed.colour = discord.Colour.red()
+            embed.title = f"Dommage! Tu n'as pas trouvé le mot {word.upper()} malgré les 8 tentatives données! Retente ta chance!"
+        elif is_word_found:
+            embed.colour = discord.Colour.green()
+            embed.title = f"Bravo! tu viens de trouver le mot {word.upper()} en {7-tentatives} tentatives!"
+        
+        embed.set_author(name=word.upper())
+        await pendu_message.edit(embed=embed)
 
-                except asyncio.TimeoutError:
-                    await ctx.send(f"{ctx.author.mention} Temps écoulé!")
-                    break
-
-                retry = await user_pendu.retry(user_quit.content.lower())
-
-                if retry == "o":
-                    await user_pendu.message_to_delete.delete()
-                    await user_quit.delete()
-                    user_pendu.__init__(ctx, connection, cursor)
-                    user_pendu.user_chances = 0
-                    await user_pendu.set_mot()
-
-                    if len(add_word) > 0:
-                        if add_word[0] == "taille" and int(add_word[1]) in range(3, 26, 1):
-                            user_pendu.taille_mot = int(add_word[1])
-
-                elif retry == "n":
-                    await user_pendu.message_to_delete.delete()
-                    await user_quit.delete()
-
-        await db_close(connection)
-        self.game_user[ctx.author.id] = None
-        msg = f"{ctx.author.display_name}#{ctx.author.discriminator} a joué au pendu dans le salon {ctx.channel.name}!"
-        write_file(
-            set_file_logs(ctx.guild.id), msg, is_log=True)
-        await get_log_channel(self.client, ctx, msg)
+    @pendu.command(name="add", aliases=["a", "ad"])
+    async def _add(self, ctx: commands.Context, word):
+        async with self.client.pool.acquire() as con:
+            try:
+                await con.execute('''
+                INSERT INTO pendu(word)
+                VALUES($1)
+                ''', word)
+            except asyncpg.exceptions.UniqueViolationError:
+                await ctx.reply("Ce mot a déjà été ajouté à ma base de données!")
+            except asyncpg.exceptions.StringDataRightTruncationError:
+                await ctx.reply("Le mot est plus long que 26 lettres, veuillez en entrer un avec moins de lettres!")
+            except error as e:
+                print(e)
+                await ctx.reply("Une erreur est survenue!")
+            else:
+                await ctx.reply("Votre mot à bien été ajouté!")
 
     @ commands.group(name="tournoi", aliases=["tournois", "tounrois", "tounroi", "tournament", "competition"], brief="Lister les tournois disponibles", invoke_without_command=True)
     async def tournoi(self, ctx: commands.Context):

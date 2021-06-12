@@ -24,12 +24,18 @@ class Common(commands.Cog):
     translator = Translator(
         service_urls=["translate.google.com", "translate.google.fr"])
 
+    def check_author(self, *args):
+        def inner(message):
+            ctx = args[0]
+            return str(message.author.id) == str(
+                ctx.author.id) and message.channel == ctx.message.channel and self.not_command(message) == False
+
     # Commands
 
     @commands.command(hidden=False, name="owner", brief="Qui est le propriétaire du serveur ?", description="Indique qui est le propriétaire du serveur.")
     async def owner(self, ctx: commands.Context):
         owner = ctx.guild.owner
-        await ctx.send(f"Le propriétaire de {ctx.guild.name} est **{owner.name}#{owner.discriminator}**")
+        await ctx.reply(f"Le propriétaire de {ctx.guild.name} est **{owner.name}#{owner.discriminator}**")
 
     @commands.command(brief="Envoyer un message", usage="<message> [attachment]",
                       description=f"Permet d'envoyer un message et des photos/fichiers par l'intermédiaire du bot")
@@ -49,7 +55,7 @@ class Common(commands.Cog):
     @commands.command(name="ping", brief="Latence du Bot",
                       description="Répond par 'Pong!' en indiquant la latence du bot.")
     async def ping(self, ctx: commands.Context):
-        await ctx.send(f"Pong! (Latence du bot: {round(self.client.latency * 1000)}ms)")
+        await ctx.reply(f"Pong! (Latence du bot: {round(self.client.latency * 1000)}ms)")
 
     @commands.command(name="google", brief="Recherches Google",
                       description="Obtenez des réponses à vos recherches google!", usage="<recherche>")
@@ -100,7 +106,7 @@ class Common(commands.Cog):
             channel = ctx.channel
         invite = await channel.create_invite(max_age=max_age, max_uses=max_uses, temporary=temporary,
                                              unique=unique, reason=" ".join(list(reason)))
-        await ctx.send(invite)
+        await ctx.reply(invite)
         write_file(
             set_file_logs(ctx.guild.id), f"{ctx.author.display_name}#{ctx.author.discriminator} a créé un lien d'invitation dans le salon {choose_channel})", is_log=True)
 
@@ -186,49 +192,92 @@ class Common(commands.Cog):
 
         await ctx.author.send(f"__**Veuillez utiliser l'abréviation pour traduire une phrase dans le serveur.**__ Par exemple pour traduire 'Bonjour' en anglais je vais écrire `{ctx.prefix}{self.translate.name} en Bonjour` et la phrase sera traduite en anglais.")
 
-    @commands.group(name="incoming", brief="Liste des fonctionnalités avenirs du Bot", description="Affiche la liste des futurs ajouts de fonctionnalités au bot, ainsi que les fonctionnalités du serveur/bot que les membres du serveur suggèrent.", invoke_without_command=True)
-    async def incoming(self, ctx: commands.Context):
-        incoming_file = read_file("assets/Data/incoming.json", is_json=True)
-        final_message = ""
-        for category, values in incoming_file.items():
-            if category == "Bientôt":
-                final_message += "__**" + category + \
-                    " à votre disposition**__ *Dépend uniquement de la motivation/du temps des devs...*\n"
-                for key, value in values.items():
-                    final_message += "\n__" + key + \
-                        ":__\n" + '\n'.join(value) + ""
-                final_message += "\n"
-            elif category == "Suggestions":
-                final_message += "\n" + f"__**{category}**__" + "\n"
-                for key, value in values.items():
-                    if int(key) == ctx.guild.id:
-                        final_message += "\n" + '\n'.join(value)
-                final_message += "\n\n" + \
-                    f"*Ajoutez vos suggestions avec la commande `{ctx.prefix}{ctx.command.name} add \"Votre suggestion\"` !*"
+    @commands.group(name="suggestion", brief="Soumettez vos suggestions et avis sur le serveur et/ou sur moi-même", description="Permet d'ajouter vos idées de fonctionnalités à ajouter au bot ou au serveur. Vous pouvez aussi soumettre toute idée/critique/suggestion valable.", aliases=["sug", "suggest"], invoke_without_command=True)
+    async def suggestion(self, ctx: commands.Context):       
+        await ctx.reply(f"Pour plus d'informations, taper {ctx.prefix}help suggestion")
 
-        await ctx.send(final_message)
+    @suggestion.command(name="list", brief="Affiche toutes les suggestions faites par les membres de ce serveur.", aliases=["liste"])
+    async def _list(self, ctx: commands.Context):
+        async with self.client.pool.acquire() as con:
+            suggestions = await con.fetch('''
+            SELECT suggestion, member_id, timestamp
+            FROM suggestions
+            WHERE guild_id = $1
+            ''', ctx.guild.id)
 
-    @incoming.command(name="add", brief="Ajouter une suggestion de fonctionnalité au Bot")
-    async def add(self, ctx: commands.Context, *args):
-        incoming_file_suggestions = read_file(
-            "assets/Data/incoming.json", is_json=True)
-        exists = False
-        for i in incoming_file_suggestions["Suggestions"].keys():
-            if i == str(ctx.guild.id):
-                exists = True
-        if not exists:
-            incoming_file_suggestions["Suggestions"][str(ctx.guild.id)] = []
-        incoming_file_suggestions["Suggestions"][str(ctx.guild.id)].append(
-            f"**{ctx.author.display_name}#{ctx.author.discriminator}** suggère: *{' '.join(args)}*")
-        try:
-            write_file("assets/Data/incoming.json",
-                       incoming_file_suggestions, is_json=True, mode="w")
-        except:
-            await ctx.send("Une erreur est survenue, veuillez réessayer plus tard. |<@440141443877830656>|")
-        else:
-            write_file(set_file_logs(
-                ctx.guild.id), f"Nouvelle suggestion par {ctx.author.display_name}#{ctx.author.discriminator}!", is_log=True)
-            await ctx.send(":partying_face:  Votre suggestion a bien été enregistrée! Merci pour votre contribution, je suis toujours à votre écoute concernant vos idées de fonctionnalités à ajouter au bot/serveur! :partying_face: ")
+        embed = Embed(title=f"Suggestions du serveur {ctx.guild.name}", timestamp=datetime.now(), colour=Color.green())
+
+        embed.set_footer(icon_url=ctx.guild.icon_url)
+
+        for message in suggestions:
+            date = message.get('timestamp')
+            embed.add_field(name=f"{ctx.guild.get_member(message.get('member_id')).name} le {date.day}/{date.month}/{date.year} à {date.hour}H{date.minute}", value=message.get("suggestion"), inline=False)
+        
+        await ctx.reply(embed=embed)
+        print(suggestions)
+
+
+    @suggestion.command(name="add", brief="Ajouter une suggestion de fonctionnalité au Bot/Serveur")
+    async def add(self, ctx: commands.Context, *, args=None):
+        if not args:
+            message = await ctx.reply("Vous pouvez me soumettre votre suggestion, je vous écoute.")
+            try:
+                response: discord.Message = await self.client.wait_for("message", check=self.check_author(ctx), timeout=180.0)
+            except asyncio.TimeoutError:
+                await message.edit(f"Temps écoulé {ctx.author.mention}!")
+                return
+            else:
+                args = response.content
+        
+        async with self.client.pool.acquire() as con:
+            await con.execute('''
+            INSERT INTO suggestions(guild_id, suggestion, member_id, timestamp)
+            VALUES($1, $2, $3, $4)
+            ''', ctx.guild.id, args, ctx.author.id, datetime.now())
+        
+        await ctx.reply("Votre suggestion a bien été prise en compte !")
+
+    @suggestion.command(name="delete", brief="Supprimez une suggestion que vous avez donné sur ce serveur", description="Liste vos suggestions actuelles ainsi que leur numéro et supprimez celles que vous souhaiter en indiquant leurs numéros.")
+    async def delete(self, ctx: commands.Context, id=None):
+        if not id:
+            async with self.client.pool.acquire() as con:
+                suggestions = await con.fetch('''
+                SELECT id, suggestion, timestamp
+                FROM suggestions
+                WHERE guild_id = $1 AND member_id = $2
+                ''', ctx.guild.id, ctx.author.id)
+
+            embed = Embed(title=f"Vos suggestions dans le serveur {ctx.guild.name}", timestamp=datetime.now(), colour=Color.orange())
+
+            embed.set_footer(text="Taper exit pour annuler", icon_url=ctx.guild.icon_url)
+
+            for message in suggestions:
+                date = message.get('timestamp')
+                embed.add_field(name=f"Vous, le {date.day}/{date.month}/{date.year} à {date.hour}H{date.minute}", value=f"{message.get('suggestion')}\n**ID = {message.get('id')}**", inline=False)
+
+            await ctx.reply(embed=embed, content="Merci d'indiquer le numéro d'**ID** correspondant à la suggestion que vous voulez effacer.")
+
+            try:
+                message = await self.client.wait_for("message", check=self.check_author(ctx), timeout=120.0)
+            except asyncio.TimeoutError:
+                await message.edit(f"Temps écoulé {ctx.author.mention}!")
+                return
+            else:
+                try:
+                    id = int(message.content)
+                except:
+                    if message.content == "exit":
+                        return
+
+        
+        async with self.client.pool.acquire() as con:
+            await con.execute('''
+            DELETE FROM suggestions
+            WHERE member_id = $1 AND id = $2
+            ''', ctx.author.id, id)
+
+        await ctx.send("Votre suggestion a bien été effacée!")
+
 
     @commands.group(name="lanplay", aliases=["lan"], brief="Afficher les serveurs Lan-Play", description=f"Indiquez le serveur dont vous voulez afficher les informations, par exemple lanplay.reboot.ms:11451\nPour afficher la liste des serveurs disponibles, tapez la commande `lanplay list`", usage="<url>", invoke_without_command=True)
     async def lanplay(self, ctx: commands.Context, *, url: str = "switch.lan-play.com:11451"):
@@ -313,7 +362,7 @@ class Common(commands.Cog):
         embed.set_footer(
             text=f"Ex: {ctx.prefix}{ctx.command.root_parent} lanplay.reboot.ms:11451", icon_url=ctx.guild.icon_url)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
 
 def setup(client):

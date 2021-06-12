@@ -158,16 +158,15 @@ class Admin(commands.Cog):
                        usage="<nombre_de_messages>", aliases=["purge", "erase", "delete"])
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx: commands.Context, amount=5):
-        sure = await ctx.send(
-            f"Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal {ctx.author.mention}(**o**/**n**)?")
+        sure = await ctx.reply(
+            "Etes-vous bien sûr de vouloir effacer {amount} messages de ce canal (**o**/**n**)?")
         try:
             message = await self.client.wait_for("message", check=self.check_author(ctx), timeout=60.0)
         except asyncio.TimeoutError:
-            await ctx.send("Temps écoulé!")
+            await sure.edit(content="Temps écoulé!", delete_after=5.0)
             await ctx.message.delete()
-            await sure.delete()
         else:
-            if message.content == "o":
+            if message.content.lower() == "o":
                 await ctx.channel.purge(limit=amount + 3)
                 msg = f"{ctx.author.display_name} a effacé {amount} messages du salon {ctx.channel.name}!"
                 write_file(set_file_logs(
@@ -183,7 +182,7 @@ class Admin(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason=None):
         await member.kick(reason=reason)
-        await ctx.send(f"{member.mention} a été expulsé!")
+        await ctx.reply(f"{member.mention} a été expulsé!")
         msg = f"L'utilisateur {member.display_name}#{member.discriminator} a été expulsé par {ctx.author.name}!"
         write_file(
             set_file_logs(ctx.guild.id), msg, is_log=True)
@@ -193,7 +192,7 @@ class Admin(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx: commands.Context, member: discord.Member, *, reason=None):
         await member.ban(reason=reason)
-        await ctx.send(f"{member.mention} a été banni! \n*Raison: {reason}")
+        await ctx.reply(f"{member.mention} a été banni! \n*Raison: {reason}")
         msg = f"L'utilisateur {member.display_name}#{member.discriminator} a été banni par {ctx.author.name} pour la raison suivante: {reason}"
         write_file(
             set_file_logs(ctx.guild.id), msg, is_log=True)
@@ -213,15 +212,15 @@ class Admin(commands.Cog):
                 write_file(set_file_logs(
                     ctx.guild.id), msg, is_log=True)
                 await get_log_channel(self.client, ctx, msg)
-                await ctx.send(f"{user.name}#{user.discriminator} a été débanni!")
+                await ctx.reply(msg)
                 return
 
-        await ctx.send(f"{member_name}#{member_discriminator} n'est pas un utilisateur banni du serveur.")
+        await ctx.reply(f"{member_name}#{member_discriminator} n'est pas un utilisateur banni du serveur.")
 
     @ commands.command(hidden=True, name="bot", brief="Indique l'id du bot")
     @ commands.check(team_dev)
     async def bot(self, ctx: commands.Context):
-        await ctx.send(self.client.user.id)
+        await ctx.reply(self.client.user.id)
 
     @ commands.command(name="changeprefix", brief="Modifier le prefix de commande",
                        description="Modifier le prefix de commande. Par défaut le prefix est `!`",
@@ -516,10 +515,10 @@ class Admin(commands.Cog):
 
         await ctx.send(f"Le salon des logs est le salon {self.client.get_channel(channel.id).mention} !")
 
-    @ commands.group(name="welcome", invoke_without_command=True, brief="Définir un salon/message de bienvenue", description="Permet de définir un salon de bienvenue, ainsi que le message d'accueil.\nPar défaut le nom du nouveau membre est affiché au début de votre message suivis d'une virgule. Vous pouvez choisir l'emplacement du nom du nouveau membre où vous voulez simplement en écrivant $member à l'emplacement souhaité.\nPar exemple: `Bienvenue parmi nous $member !`", usage="message|channel", help=f"Pour choisir un salon d'accueil, tapez `welcome channel <#id_du_salon>`\nPour choisir un message de bienvenue, tapez `welcome message <votre_message>`")
+    @ commands.group(name="welcome", invoke_without_command=True, brief="Définir un salon/message de bienvenue", description="Permet de définir un salon de bienvenue, ainsi que le message d'accueil.\nPar défaut le nom du nouveau membre est affiché au début de votre message suivis d'une virgule. Vous pouvez choisir l'emplacement du nom du nouveau membre où vous voulez simplement en écrivant $member à l'emplacement souhaité.\nPar exemple: `Bienvenue parmi nous $member !`", usage="message|channel")
     @ commands.has_permissions(manage_guild=True)
     async def welcome(self, ctx: commands.Context):
-        await ctx.send(self.welcome.help)
+        await ctx.reply(f"Pour choisir un salon d'accueil, tapez `{ctx.prefix}welcome channel <#id_du_salon>`\nPour choisir un message de bienvenue, tapez `{ctx.prefix}welcome message <votre_message>`")
 
     @ welcome.command(name="channel")
     async def channel(self, ctx: commands.Context):
@@ -540,7 +539,7 @@ class Admin(commands.Cog):
                    msg, is_log=True)
         await get_log_channel(self.client, ctx, msg)
 
-        await ctx.send(f"Le salon de bienvenue est le salon {self.client.get_channel(welcome_channel_id).mention} !")
+        await ctx.reply(f"Le salon de bienvenue est le salon {self.client.get_channel(welcome_channel_id).mention} !")
 
     @ welcome.command(name="message")
     async def message(self, ctx: commands.Context, *, args):
@@ -561,38 +560,17 @@ class Admin(commands.Cog):
                    msg, is_log=True)
         await get_log_channel(self.client, ctx, msg)
 
-        await ctx.send(f"Le message de bienvenue est \"{welcome_message}\" et sera posté dans le salon de bienvenue à chaque arrivée d'un membre dans le serveur!")
-
-    @commands.command(name="test", hidden=True)
-    @commands.check(team_dev)
-    async def test(self, ctx: commands.Context, user: discord.Member = None):
-        if user == None:
-            user = ctx.author
-
-        image = Image.open("assets/Images/trou_noir.jpg")
-        font = ImageFont.truetype("assets/Fonts/adler.ttf", 48,)
-        asset = user.avatar_url_as(size=128)
-        data = BytesIO(await asset.read())
-        pfp = Image.open(data)
-        pfp = pfp.resize((240, 240))
-        image.paste(pfp, (270, 140))
-        draw = ImageDraw
-        draw.Draw(image)
-        text = f"{ctx.author.display_name}#{ctx.author.discriminator}\nà déformé l'espace-temps\npour nous rejoindre!"
-        draw.text((200, 35), text, (0, 0, 0), font=font)
-        image.save("assets/Images/profile.jpg")
-
-        await ctx.send(file=discord.File("assets/Images/profile.jpg"))
+        await ctx.reply(f"Le message de bienvenue est:\n\n\"{welcome_message}\"\n\nIl sera posté dans le salon de bienvenue à chaque arrivée d'un membre dans le serveur!")
 
     @ bot.error
     async def bot_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            await ctx.send("Vous n'êtes pas <@!440141443877830656>!")
+            await ctx.reply("Vous n'êtes pas <@!440141443877830656>!")
 
     @ unban.error
     async def unban_error(self, ctx, error):
         if ValueError(error):
-            await ctx.send("L'utilisateur doit être écrit de la forme `nom#XXXX`.")
+            await ctx.reply("L'utilisateur doit être écrit de la forme `nom#XXXX`.")
 
 
 def setup(client):

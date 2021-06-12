@@ -37,7 +37,10 @@ class MyHelp(commands.HelpCommand):
         if command.aliases:
             new_aliases = []
             for c in command.aliases:
-                new_aliases.append(f"`{self.clean_prefix}{c}`")
+                if command.full_parent_name:
+                    new_aliases.append(f"`{self.clean_prefix}{command.full_parent_name} {c}`")
+                else:
+                    new_aliases.append(f"`{self.clean_prefix}{c}`")
             embed.add_field(name="Alias", value="\n".join(
                 new_aliases), inline=False)
 
