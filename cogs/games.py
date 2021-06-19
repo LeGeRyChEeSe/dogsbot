@@ -110,7 +110,7 @@ class Games(commands.Cog):
 
         hidden_word = " ".join(letter for letter in hidden_word)
 
-        embed = discord.Embed(colour=discord.Color.magenta(), timestamp=datetime.datetime.now())
+        embed = discord.Embed(colour=discord.Color.magenta(), timestamp=datetime.utcnow())
         embed.set_footer(text=ctx.author, icon_url=ctx.guild.icon_url)
         embed.set_author(name=hidden_word.upper())
         embed.add_field(name="Tentatives restantes", value=8)
@@ -162,7 +162,7 @@ class Games(commands.Cog):
 
             if tentatives == 0:
                 is_over = True
-            elif word == hidden_word.replace(" ", ""):
+            elif word.upper() == hidden_word.replace(" ", ""):
                 is_word_found = True
         
         if is_over:
@@ -170,7 +170,7 @@ class Games(commands.Cog):
             embed.title = f"Dommage! Tu n'as pas trouvé le mot {word.upper()} malgré les 8 tentatives données! Retente ta chance!"
         elif is_word_found:
             embed.colour = discord.Colour.green()
-            embed.title = f"Bravo! tu viens de trouver le mot {word.upper()} en {7-tentatives} tentatives!"
+            embed.title = f"Bravo! tu viens de trouver le mot {word.upper()} en {8-tentatives+1} tentatives!"
         
         embed.set_author(name=word.upper())
         await pendu_message.edit(embed=embed)

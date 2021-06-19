@@ -331,7 +331,7 @@ class Admin(commands.Cog):
         embed.colour = discord.Colour(126)
         embed.set_author(name=ctx.message.guild.name)
         embed.set_thumbnail(url=ctx.guild.icon_url)
-        embed.timestamp = datetime.now(timezone.utc)
+        embed.timestamp = datetime.utcnow()
 
         for key, value in receivers.items():
             embed.add_field(name=value.emoji,

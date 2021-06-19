@@ -14,6 +14,8 @@ import requests
 from bs4 import BeautifulSoup
 from googletrans import Translator, LANGUAGES
 import pythonping
+import copy
+import aiohttp
 
 
 class Common(commands.Cog):
@@ -192,11 +194,11 @@ class Common(commands.Cog):
 
         await ctx.author.send(f"__**Veuillez utiliser l'abréviation pour traduire une phrase dans le serveur.**__ Par exemple pour traduire 'Bonjour' en anglais je vais écrire `{ctx.prefix}{self.translate.name} en Bonjour` et la phrase sera traduite en anglais.")
 
-    @commands.group(name="suggestion", brief="Soumettez vos suggestions et avis sur le serveur et/ou sur moi-même", description="Permet d'ajouter vos idées de fonctionnalités à ajouter au bot ou au serveur. Vous pouvez aussi soumettre toute idée/critique/suggestion valable.", aliases=["sug", "suggest"], invoke_without_command=True)
+    @commands.group(name="suggestion", brief="Soumettez vos suggestions et avis sur le serveur et/ou sur moi-même", description="Permet d'ajouter vos idées de fonctionnalités à ajouter au bot ou au serveur. Vous pouvez aussi soumettre toute idée/critique/suggestion valable.", aliases=["sug", "sugg", "suggest"], invoke_without_command=True)
     async def suggestion(self, ctx: commands.Context):       
         await ctx.reply(f"Pour plus d'informations, taper {ctx.prefix}help suggestion")
 
-    @suggestion.command(name="list", brief="Affiche toutes les suggestions faites par les membres de ce serveur.", aliases=["liste"])
+    @suggestion.command(name="list", brief="Affiche toutes les suggestions faites par les membres de ce serveur.", aliases=["liste", "l", "li"])
     async def _list(self, ctx: commands.Context):
         async with self.client.pool.acquire() as con:
             suggestions = await con.fetch('''
@@ -205,19 +207,61 @@ class Common(commands.Cog):
             WHERE guild_id = $1
             ''', ctx.guild.id)
 
-        embed = Embed(title=f"Suggestions du serveur {ctx.guild.name}", timestamp=datetime.now(), colour=Color.green())
+        nb_embeds = (len(suggestions)-1)//25+1
+        buttons = [u"\u23EA", u"\u25C0", u"\u25B6", u"\u23E9"]
+        current = 0
+        embeds = []
 
-        embed.set_footer(icon_url=ctx.guild.icon_url)
+        for _ in range(nb_embeds):
+            embed = Embed(title=f"Suggestions du serveur {ctx.guild.name}", timestamp=datetime.utcnow(), colour=Color.green())
+            embed.set_footer(icon_url=ctx.guild.icon_url)
 
-        for message in suggestions:
-            date = message.get('timestamp')
-            embed.add_field(name=f"{ctx.guild.get_member(message.get('member_id')).name} le {date.day}/{date.month}/{date.year} à {date.hour}H{date.minute}", value=message.get("suggestion"), inline=False)
-        
-        await ctx.reply(embed=embed)
-        print(suggestions)
+            for i in range(len(suggestions)):
+                print(len(suggestions)-1,i)
+                if i%25 == 0 and i != 0:
+                    embeds.append(copy.deepcopy(embed))
+                    embed.clear_fields()
+                else:
+                    date = suggestions[i].get('timestamp')
+                    embed.add_field(name=f"{ctx.guild.get_member(suggestions[i].get('member_id')).name} le {date.day}/{date.month}/{date.year} à {date.hour}H{date.minute}", value=suggestions[i].get("suggestion"), inline=False)
+            
+            embeds.append(embed)
 
+        response: discord.Message = await ctx.reply(embed=embeds[current])
 
-    @suggestion.command(name="add", brief="Ajouter une suggestion de fonctionnalité au Bot/Serveur")
+        for button in buttons:
+            await response.add_reaction(button)
+
+        while True:
+            try:
+                reaction, user= await self.client.wait_for("reaction_add", check=lambda reaction, user: user == ctx.author and reaction.emoji in buttons, timeout=60.0)
+            except asyncio.TimeoutError:
+                embed:discord.Embed = embeds[current]
+                embed.set_footer(text="Temps écoulé!")
+                await response.clear_reactions()
+                await response.edit(embed=embeds[current])
+            else:
+                previous_page = current
+
+                if reaction.emoji == u"\u23EA":
+                    current = 0
+                elif reaction.emoji == u"\u25C0":
+                    if current > 0:
+                        current -= 1
+                elif reaction.emoji == u"\u25B6":
+                    if current < nb_embeds-1:
+                        current += 1
+                elif reaction.emoji == u"\u23E9":
+                    current = nb_embeds-1
+
+                for button in buttons:
+                    await response.remove_reaction(button, ctx.author)
+
+                if current != previous_page:
+                    await response.edit(embed=embeds[current])
+            
+
+    @suggestion.command(name="add", brief="Ajouter une suggestion de fonctionnalité au Bot/Serveur", aliases=["a", "ad"], usage="<votre_suggestion>")
     async def add(self, ctx: commands.Context, *, args=None):
         if not args:
             message = await ctx.reply("Vous pouvez me soumettre votre suggestion, je vous écoute.")
@@ -233,12 +277,12 @@ class Common(commands.Cog):
             await con.execute('''
             INSERT INTO suggestions(guild_id, suggestion, member_id, timestamp)
             VALUES($1, $2, $3, $4)
-            ''', ctx.guild.id, args, ctx.author.id, datetime.now())
+            ''', ctx.guild.id, args, ctx.author.id, datetime.utcnow())
         
         await ctx.reply("Votre suggestion a bien été prise en compte !")
 
-    @suggestion.command(name="delete", brief="Supprimez une suggestion que vous avez donné sur ce serveur", description="Liste vos suggestions actuelles ainsi que leur numéro et supprimez celles que vous souhaiter en indiquant leurs numéros.")
-    async def delete(self, ctx: commands.Context, id=None):
+    @suggestion.command(name="delete", brief="Supprimez une suggestion que vous avez donné sur ce serveur", description="Liste vos suggestions actuelles ainsi que leur numéro et supprimez celles que vous souhaiter en indiquant leurs numéros.", aliases=["d", "de", "del"])
+    async def delete(self, ctx: commands.Context, id: int=None):
         if not id:
             async with self.client.pool.acquire() as con:
                 suggestions = await con.fetch('''
@@ -247,7 +291,7 @@ class Common(commands.Cog):
                 WHERE guild_id = $1 AND member_id = $2
                 ''', ctx.guild.id, ctx.author.id)
 
-            embed = Embed(title=f"Vos suggestions dans le serveur {ctx.guild.name}", timestamp=datetime.now(), colour=Color.orange())
+            embed = Embed(title=f"Vos suggestions dans le serveur {ctx.guild.name}", timestamp=datetime.utcnow(), colour=Color.orange())
 
             embed.set_footer(text="Taper exit pour annuler", icon_url=ctx.guild.icon_url)
 
@@ -276,7 +320,7 @@ class Common(commands.Cog):
             WHERE member_id = $1 AND id = $2
             ''', ctx.author.id, id)
 
-        await ctx.send("Votre suggestion a bien été effacée!")
+        await ctx.reply("Votre suggestion a bien été effacée!")
 
 
     @commands.group(name="lanplay", aliases=["lan"], brief="Afficher les serveurs Lan-Play", description=f"Indiquez le serveur dont vous voulez afficher les informations, par exemple lanplay.reboot.ms:11451\nPour afficher la liste des serveurs disponibles, tapez la commande `lanplay list`", usage="<url>", invoke_without_command=True)
@@ -363,6 +407,21 @@ class Common(commands.Cog):
             text=f"Ex: {ctx.prefix}{ctx.command.root_parent} lanplay.reboot.ms:11451", icon_url=ctx.guild.icon_url)
 
         await ctx.reply(embed=embed)
+
+    @commands.group(name="nsfw", description="Not Safe For Work!")
+    async def nsfw(self, ctx: commands.Context):
+        if ctx.channel.is_nsfw():
+            embed = discord.Embed(color=discord.Color.red())  
+            async with aiohttp.ClientSession() as cs:
+                async with cs.get('https://www.reddit.com/r/nsfw/new.json?sort=hot') as r:
+                    res = await r.json()
+                    image = res['data']['children'] [random.randint(0, 25)]['data']
+                    embed.title = image['title']
+                    embed.description = image["url"]
+                    embed.set_image(url=image['url'])
+                    await ctx.send(embed=embed)
+        else:
+            await ctx.reply("Vous ne pouvez taper cette commande que dans un salon NSFW!")
 
 
 def setup(client):

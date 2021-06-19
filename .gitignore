@@ -9,3 +9,4 @@ __pycache__
 .google-cookie
 .python-version
 dogsbot.log
+restart-bot.sh
