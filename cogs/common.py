@@ -199,6 +199,7 @@ class Common(commands.Cog):
         await ctx.reply(f"Pour plus d'informations, taper {ctx.prefix}help suggestion")
 
     @suggestion.command(name="list", brief="Affiche toutes les suggestions faites par les membres de ce serveur.", aliases=["liste", "l", "li"])
+    @commands.cooldown(3, 60)
     async def _list(self, ctx: commands.Context):
         async with self.client.pool.acquire() as con:
             suggestions = await con.fetch('''

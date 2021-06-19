@@ -31,7 +31,7 @@ intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix=get_prefixes, intents=intents)
 client.pool = client.loop.run_until_complete(asyncpg.create_pool(
-    host="stain.ddns.net", user="kilian", password="WebReveuse41400", database="dogsbot"))
+    host=os.getenv("HOST_DB"), user=os.getenv("USER_DB"), password=os.getenv("PASSWD_DB"), database=os.getenv("DB")))
 
 
 # Events
@@ -138,7 +138,7 @@ async def on_command_error(ctx: commands.Context, error):
         lines = traceback.format_exception(etype, error, trace, verbosity)
         traceback_text = ''.join(lines)
         print(traceback_text)
-        message_error = await ctx.send(error)
+        message_error = await ctx.reply(error)
         await message_error.add_reaction("\U0001f197")
         try:
             await client.wait_for("raw_reaction_add", check=check_author, timeout=120.0)
